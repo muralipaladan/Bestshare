@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KSREC Survey Parcel Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', 'Noto Sans Malayalam', sans-serif; }
+  #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; }
+
+  #topbar {
+    position: absolute; top: 10px; left: 10px; right: 10px; z-index: 1000;
+    display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none;
+  }
+  #topbar button {
+    pointer-events: auto;
+    background: #ffffff; border: none; border-radius: 8px; padding: 10px 14px;
+    font-size: 14px; font-weight: 600; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    cursor: pointer; color: #222; display: flex; align-items: center; gap: 6px;
+  }
+  #topbar button.active { background: #1a73e8; color: #fff; }
+  #topbar button:active { transform: scale(0.96); }
+
+  #status {
+    position: absolute; bottom: 16px; left: 10px; right: 10px; z-index: 1000;
+    background: rgba(0,0,0,0.75); color: #fff; font-size: 13px; padding: 8px 12px;
+    border-radius: 8px; text-align: center; pointer-events: none; display: none;
+  }
+
+  .note-popup textarea {
+    width: 220px; height: 70px; font-size: 14px; font-family: inherit;
+    border: 1px solid #ccc; border-radius: 6px; padding: 6px; resize: vertical;
+  }
+  .note-popup .btnrow { display: flex; gap: 6px; margin-top: 6px; }
+  .note-popup button {
+    flex: 1; padding: 6px 8px; border: none; border-radius: 6px; font-size: 13px;
+    cursor: pointer; font-weight: 600;
+  }
+  .note-popup .save-btn { background: #1a73e8; color: #fff; }
+  .note-popup .del-btn { background: #e53935; color: #fff; }
+
+  .gps-dot {
+    width: 16px; height: 16px; border-radius: 50%; background: #4285F4;
+    border: 3px solid #fff; box-shadow: 0 0 4px rgba(0,0,0,0.5);
+  }
+
+  #sharePanel {
+    position: absolute; z-index: 2000; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center;
+  }
+  #sharePanel .box {
+    background: #fff; border-radius: 10px; padding: 16px; width: 90%; max-width: 420px;
+    max-height: 80vh; overflow-y: auto;
+  }
+  #sharePanel textarea {
+    width: 100%; height: 160px; font-size: 12px; font-family: monospace;
+    border: 1px solid #ccc; border-radius: 6px; padding: 6px;
+  }
+  #sharePanel .row { display: flex; gap: 8px; margin-top: 10px; }
+  #sharePanel button {
+    flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;
+  }
+  .primary { background: #1a73e8; color: #fff; }
+  .secondary { background: #eee; color: #333; }
+  #sharePanel h3 { margin-top: 0; }
+  #importFile { display: none; }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div id="topbar">
+  <button id="gpsBtn">📍 Live Location</button>
+  <button id="noteBtn">📝 Note</button>
+  <button id="shareBtn">📤 Share/Save</button>
+</div>
+
+<div id="status"></div>
+
+<div id="sharePanel">
+  <div class="box">
+    <h3>Notes Share / Backup</h3>
+    <p style="font-size:13px;color:#555">Notes ellam ee device il localStorage il automatic aayi save aavum. Vere oru device il kondu povan / WhatsApp il share cheyyan താഴെ ഉപയോഗിക്കുക.</p>
+    <textarea id="jsonArea" readonly></textarea>
+    <div class="row">
+      <button class="primary" id="copyBtn">📋 Copy</button>
+      <button class="secondary" id="waBtn">💬 WhatsApp</button>
+    </div>
+    <div class="row">
+      <button class="secondary" id="downloadBtn">⬇️ Download JSON</button>
+      <button class="secondary" id="importBtn">⬆️ Import JSON</button>
+    </div>
+    <div class="row">
+      <button class="secondary" id="clearBtn" style="color:#e53935">🗑️ Clear all notes</button>
+      <button class="primary" id="closeShareBtn">Close</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json">
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ---------- CONFIG ----------
+const WMS_URL = 'https://ksrec.in/geoserver/Kerala/wms';
+const WMS_LAYER = 'Kerala:KSUDP_KKD_Survey_Parcel_acpc';
+const STORAGE_KEY = 'ksrec_parcel_map_notes_v1';
+const GPS_ZOOM = 16;
+
+// ---------- MAP INIT ----------
+const map = L.map('map', { zoomControl: true }).setView([11.28, 76.23], 13);
+
+const googleRoad = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+  subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+  maxZoom: 22,
+  attribution: 'Google Maps'
+}).addTo(map);
+
+const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+  subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+  maxZoom: 22,
+  attribution: 'Google Maps'
+});
+
+const parcelLayer = L.tileLayer.wms(WMS_URL, {
+  layers: WMS_LAYER,
+  format: 'image/png',
+  transparent: true,
+  version: '1.1.1',
+  maxZoom: 22,
+  attribution: 'KSREC Survey Parcel'
+}).addTo(map);
+
+L.control.layers(
+  { 'Google Roadmap': googleRoad, 'Google Hybrid': googleHybrid },
+  { 'Survey Parcel': parcelLayer },
+  { collapsed: true, position: 'topright' }
+).addTo(map);
+
+function showStatus(msg, autohide) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.style.display = 'block';
+  if (autohide) setTimeout(() => { el.style.display = 'none'; }, autohide);
+}
+
+// ---------- LIVE GPS (two-step: coarse then high accuracy) ----------
+let gpsActive = false;
+let watchId = null;
+let gpsMarker = null;
+let gpsCircle = null;
+
+function startGPS() {
+  if (!navigator.geolocation) {
+    showStatus('GPS ee browser il ലഭ്യമല്ല', 3000);
+    return;
+  }
+  gpsActive = true;
+  document.getElementById('gpsBtn').classList.add('active');
+  showStatus('Location kandെത്തുന്നു...', 0);
+
+  // Step 1: quick coarse fix
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      updateGpsMarker(pos, true);
+      startHighAccuracyWatch();
+    },
+    err => {
+      // fall straight to high-accuracy watch if coarse fails
+      startHighAccuracyWatch();
+    },
+    { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+  );
+}
+
+function startHighAccuracyWatch() {
+  watchId = navigator.geolocation.watchPosition(
+    pos => updateGpsMarker(pos, true),
+    err => showStatus('GPS error: ' + err.message, 4000),
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 2000 }
+  );
+}
+
+function updateGpsMarker(pos, recenter) {
+  const { latitude, longitude, accuracy } = pos.coords;
+  const latlng = [latitude, longitude];
+
+  if (!gpsMarker) {
+    gpsMarker = L.marker(latlng, {
+      icon: L.divIcon({ className: '', html: '<div class="gps-dot"></div>', iconSize: [16, 16] })
+    }).addTo(map);
+    gpsCircle = L.circle(latlng, { radius: accuracy, color: '#4285F4', fillOpacity: 0.15, weight: 1 }).addTo(map);
+  } else {
+    gpsMarker.setLatLng(latlng);
+    gpsCircle.setLatLng(latlng);
+    gpsCircle.setRadius(accuracy);
+  }
+
+  if (recenter) {
+    map.setView(latlng, GPS_ZOOM);
+  }
+  showStatus('Live location active (±' + Math.round(accuracy) + 'm)', 2500);
+}
+
+function stopGPS() {
+  gpsActive = false;
+  document.getElementById('gpsBtn').classList.remove('active');
+  if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+  watchId = null;
+  showStatus('Live location നിർത്തി', 2000);
+}
+
+document.getElementById('gpsBtn').addEventListener('click', () => {
+  if (gpsActive) stopGPS(); else startGPS();
+});
+
+// ---------- NOTES ----------
+let noteMode = false;
+let notes = [];
+
+function loadNotes() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    notes = raw ? JSON.parse(raw) : [];
+  } catch (e) { notes = []; }
+  notes.forEach(renderNote);
+}
+
+function saveNotes() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+}
+
+function renderNote(note) {
+  const marker = L.marker([note.lat, note.lng]).addTo(map);
+  note._marker = marker;
+  marker.bindPopup(buildNotePopup(note));
+}
+
+function buildNotePopup(note) {
+  const div = document.createElement('div');
+  div.className = 'note-popup';
+  const ta = document.createElement('textarea');
+  ta.value = note.text || '';
+  ta.placeholder = 'Note ezhuthu...';
+  div.appendChild(ta);
+
+  const row = document.createElement('div');
+  row.className = 'btnrow';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'save-btn';
+  saveBtn.textContent = 'Save';
+  saveBtn.onclick = () => {
+    note.text = ta.value;
+    note.timestamp = new Date().toISOString();
+    saveNotes();
+    note._marker.closePopup();
+    showStatus('Note save ചെയ്തു', 1500);
+  };
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'del-btn';
+  delBtn.textContent = 'Delete';
+  delBtn.onclick = () => {
+    map.removeLayer(note._marker);
+    notes = notes.filter(n => n !== note);
+    saveNotes();
+  };
+
+  row.appendChild(saveBtn);
+  row.appendChild(delBtn);
+  div.appendChild(row);
+  return div;
+}
+
+document.getElementById('noteBtn').addEventListener('click', () => {
+  noteMode = !noteMode;
+  document.getElementById('noteBtn').classList.toggle('active', noteMode);
+  showStatus(noteMode ? 'Map il tap cheyyu note ideendathinu' : 'Note mode off', 2500);
+});
+
+map.on('click', (e) => {
+  if (!noteMode) return;
+  const note = { lat: e.latlng.lat, lng: e.latlng.lng, text: '', timestamp: new Date().toISOString() };
+  notes.push(note);
+  const marker = L.marker(e.latlng).addTo(map);
+  note._marker = marker;
+  marker.bindPopup(buildNotePopup(note)).openPopup();
+  saveNotes();
+  noteMode = false;
+  document.getElementById('noteBtn').classList.remove('active');
+});
+
+loadNotes();
+
+// ---------- SHARE / SAVE / IMPORT / EXPORT ----------
+const sharePanel = document.getElementById('sharePanel');
+const jsonArea = document.getElementById('jsonArea');
+
+function exportPlainNotes() {
+  return notes.map(({ lat, lng, text, timestamp }) => ({ lat, lng, text, timestamp }));
+}
+
+document.getElementById('shareBtn').addEventListener('click', () => {
+  jsonArea.value = JSON.stringify(exportPlainNotes(), null, 2);
+  sharePanel.style.display = 'flex';
+});
+document.getElementById('closeShareBtn').addEventListener('click', () => {
+  sharePanel.style.display = 'none';
+});
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  jsonArea.select();
+  document.execCommand('copy');
+  showStatus('Copy ചെയ്തു', 1500);
+});
+
+document.getElementById('waBtn').addEventListener('click', () => {
+  const plain = exportPlainNotes();
+  let text = 'KSREC Parcel Map Notes:\n\n';
+  plain.forEach((n, i) => {
+    text += `${i + 1}. ${n.text || '(no text)'}\nhttps://www.google.com/maps?q=${n.lat},${n.lng}\n\n`;
+  });
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+});
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(exportPlainNotes(), null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ksrec_map_notes.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importFile').click();
+});
+document.getElementById('importFile').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const imported = JSON.parse(reader.result);
+      imported.forEach(n => {
+        const note = { lat: n.lat, lng: n.lng, text: n.text || '', timestamp: n.timestamp || new Date().toISOString() };
+        notes.push(note);
+        renderNote(note);
+      });
+      saveNotes();
+      showStatus('Import ചെയ്തു: ' + imported.length + ' notes', 2500);
+      sharePanel.style.display = 'none';
+    } catch (err) {
+      showStatus('Import error: file thettanu', 3000);
+    }
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  if (!confirm('Ella notes um delete cheyyanoo? Ithu undo cheyyan pattilla.')) return;
+  notes.forEach(n => map.removeLayer(n._marker));
+  notes = [];
+  saveNotes();
+  sharePanel.style.display = 'none';
+});
+</script>
+</body>
+</html>
