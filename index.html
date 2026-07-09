@@ -180,7 +180,7 @@ function startGPS() {
   }
   gpsActive = true;
   document.getElementById('gpsBtn').classList.add('active');
-  showStatus('Location kandെത്തുന്നു...', 0);
+  showStatus('ലൊക്കേഷൻ സെർച്ചിങ്ങ്...', 0);
 
   // Step 1: quick coarse fix
   navigator.geolocation.getCurrentPosition(
@@ -315,6 +315,9 @@ map.on('click', (e) => {
 });
 
 loadNotes();
+
+// Map open cheyyumbol default aayi live location on cheyyuka
+startGPS();
 
 // ---------- SHARE / SAVE / IMPORT / EXPORT ----------
 const sharePanel = document.getElementById('sharePanel');
