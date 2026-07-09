@@ -10,21 +10,37 @@
   html, body { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', 'Noto Sans Malayalam', sans-serif; }
   #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; }
 
-  #topbar {
-    position: absolute; top: 10px; left: 10px; right: 10px; z-index: 1000;
-    display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none;
+  /* Right-side floating circular buttons, Google-Maps style */
+  #rightFab {
+    position: absolute; top: 90px; right: 10px; z-index: 1000;
+    display: flex; flex-direction: column; gap: 10px; pointer-events: none;
   }
-  #topbar button {
+  #rightFab button {
     pointer-events: auto;
-    background: #ffffff; border: none; border-radius: 8px; padding: 10px 14px;
-    font-size: 14px; font-weight: 600; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    width: 46px; height: 46px; border-radius: 50%; border: none;
+    background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    font-size: 20px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #444; padding: 0;
+  }
+  #rightFab button.active { background: #1a73e8; color: #fff; }
+  #rightFab button:active { transform: scale(0.94); }
+
+  /* Bottom action bar: Note + Share/Save */
+  #bottombar {
+    position: absolute; bottom: 18px; left: 0; right: 0; z-index: 1000;
+    display: flex; justify-content: center; gap: 12px; pointer-events: none;
+  }
+  #bottombar button {
+    pointer-events: auto;
+    background: #ffffff; border: none; border-radius: 24px; padding: 12px 22px;
+    font-size: 14px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.35);
     cursor: pointer; color: #222; display: flex; align-items: center; gap: 6px;
   }
-  #topbar button.active { background: #1a73e8; color: #fff; }
-  #topbar button:active { transform: scale(0.96); }
+  #bottombar button.active { background: #1a73e8; color: #fff; }
+  #bottombar button:active { transform: scale(0.96); }
 
   #status {
-    position: absolute; bottom: 16px; left: 10px; right: 10px; z-index: 1000;
+    position: absolute; bottom: 78px; left: 10px; right: 10px; z-index: 1000;
     background: rgba(0,0,0,0.75); color: #fff; font-size: 13px; padding: 8px 12px;
     border-radius: 8px; text-align: center; pointer-events: none; display: none;
   }
@@ -72,8 +88,13 @@
 
 <div id="map"></div>
 
-<div id="topbar">
-  <button id="gpsBtn">📍 Live Location</button>
+<!-- Right side: Google-Maps style circular toggle for live location -->
+<div id="rightFab">
+  <button id="gpsBtn" title="Live Location on/off">📍</button>
+</div>
+
+<!-- Bottom: Note + Share/Save -->
+<div id="bottombar">
   <button id="noteBtn">📝 Note</button>
   <button id="shareBtn">📤 Share/Save</button>
 </div>
