@@ -2,396 +2,593 @@
 <html lang="ml">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>KSREC Survey Parcel Map</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ഓഹരി വിശകലന സഹായി — NSE/BSE Stock Analyzer</title>
 <style>
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', 'Noto Sans Malayalam', sans-serif; }
-  #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; }
-
-  /* Right-side floating circular buttons, Google-Maps style */
-  #rightFab {
-    position: absolute; top: 90px; right: 10px; z-index: 1000;
-    display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e2129; --border:#2a2e38;
+    --text:#e8eaed; --muted:#9aa0ac; --accent:#4f8cff; --accent2:#22c55e;
+    --danger:#ef4444; --warn:#f59e0b; --radius:14px;
   }
-  #rightFab button {
-    pointer-events: auto;
-    width: 46px; height: 46px; border-radius: 50%; border: none;
-    background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-    font-size: 20px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; color: #444; padding: 0;
-  }
-  #rightFab button.active { background: #1a73e8; color: #fff; }
-  #rightFab button:active { transform: scale(0.94); }
-
-  /* Bottom action bar: Note + Share/Save */
-  #bottombar {
-    position: absolute; bottom: 18px; left: 0; right: 0; z-index: 1000;
-    display: flex; justify-content: center; gap: 12px; pointer-events: none;
-  }
-  #bottombar button {
-    pointer-events: auto;
-    background: #ffffff; border: none; border-radius: 24px; padding: 12px 22px;
-    font-size: 14px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.35);
-    cursor: pointer; color: #222; display: flex; align-items: center; gap: 6px;
-  }
-  #bottombar button.active { background: #1a73e8; color: #fff; }
-  #bottombar button:active { transform: scale(0.96); }
-
-  #status {
-    position: absolute; bottom: 78px; left: 10px; right: 10px; z-index: 1000;
-    background: rgba(0,0,0,0.75); color: #fff; font-size: 13px; padding: 8px 12px;
-    border-radius: 8px; text-align: center; pointer-events: none; display: none;
-  }
-
-  .note-popup textarea {
-    width: 220px; height: 70px; font-size: 14px; font-family: inherit;
-    border: 1px solid #ccc; border-radius: 6px; padding: 6px; resize: vertical;
-  }
-  .note-popup .btnrow { display: flex; gap: 6px; margin-top: 6px; }
-  .note-popup button {
-    flex: 1; padding: 6px 8px; border: none; border-radius: 6px; font-size: 13px;
-    cursor: pointer; font-weight: 600;
-  }
-  .note-popup .save-btn { background: #1a73e8; color: #fff; }
-  .note-popup .del-btn { background: #e53935; color: #fff; }
-
-  .gps-dot {
-    width: 16px; height: 16px; border-radius: 50%; background: #4285F4;
-    border: 3px solid #fff; box-shadow: 0 0 4px rgba(0,0,0,0.5);
-  }
-
-  #sharePanel {
-    position: absolute; z-index: 2000; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center;
-  }
-  #sharePanel .box {
-    background: #fff; border-radius: 10px; padding: 16px; width: 90%; max-width: 420px;
-    max-height: 80vh; overflow-y: auto;
-  }
-  #sharePanel textarea {
-    width: 100%; height: 160px; font-size: 12px; font-family: monospace;
-    border: 1px solid #ccc; border-radius: 6px; padding: 6px;
-  }
-  #sharePanel .row { display: flex; gap: 8px; margin-top: 10px; }
-  #sharePanel button {
-    flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;
-  }
-  .primary { background: #1a73e8; color: #fff; }
-  .secondary { background: #eee; color: #333; }
-  #sharePanel h3 { margin-top: 0; }
-  #importFile { display: none; }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI',Roboto,Noto Sans Malayalam,Arial,sans-serif;
+    background:var(--bg);color:var(--text);}
+  header{padding:18px 20px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:10;}
+  header h1{font-size:18px;margin:0;font-weight:600;}
+  header .tag{font-size:11px;color:var(--muted);}
+  main{max-width:900px;margin:0 auto;padding:16px;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px;margin-bottom:16px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  input,select,button{font-family:inherit;font-size:14px;}
+  input[type=text],input[type=password]{flex:1;min-width:160px;padding:12px 14px;border-radius:10px;
+    border:1px solid var(--border);background:var(--panel2);color:var(--text);outline:none;}
+  input::placeholder{color:var(--muted);}
+  button{padding:12px 18px;border-radius:10px;border:none;background:var(--accent);color:#fff;
+    font-weight:600;cursor:pointer;transition:opacity .15s;}
+  button:hover{opacity:.9;}
+  button.secondary{background:var(--panel2);border:1px solid var(--border);color:var(--text);}
+  button:disabled{opacity:.5;cursor:not-allowed;}
+  .muted{color:var(--muted);font-size:13px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px;}
+  .stat{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+  .stat .k{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .stat .v{font-size:15px;font-weight:600;}
+  .up{color:var(--accent2);} .down{color:var(--danger);} .flat{color:var(--warn);}
+  canvas{width:100%;height:280px;background:var(--panel2);border-radius:10px;border:1px solid var(--border);}
+  h2{font-size:15px;margin:0 0 10px 0;color:var(--text);display:flex;align-items:center;gap:8px;}
+  h2 .badge{font-size:10px;background:var(--panel2);border:1px solid var(--border);padding:2px 8px;border-radius:20px;color:var(--muted);}
+  #aiOutput{white-space:pre-wrap;line-height:1.65;font-size:14px;}
+  .loader{display:inline-block;width:16px;height:16px;border:2px solid var(--border);
+    border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  details summary{cursor:pointer;color:var(--muted);font-size:13px;margin-bottom:8px;}
+  .disclaimer{font-size:12px;color:var(--muted);border-left:3px solid var(--warn);padding:8px 12px;
+    background:rgba(245,158,11,0.08);border-radius:6px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  td,th{padding:6px 8px;border-bottom:1px solid var(--border);text-align:left;}
+  .hidden{display:none !important;}
+  .apikeyRow{display:flex;gap:8px;align-items:center;}
+  .small{font-size:12px;padding:6px 10px;}
 </style>
 </head>
 <body>
 
-<div id="map"></div>
-
-<!-- Right side: Google-Maps style circular toggle for live location -->
-<div id="rightFab">
-  <button id="gpsBtn" title="Live Location on/off">📍</button>
-</div>
-
-<!-- Bottom: Note + Share/Save -->
-<div id="bottombar">
-  <button id="noteBtn">📝 Note</button>
-  <button id="shareBtn">📤 Share/Save</button>
-</div>
-
-<div id="status"></div>
-
-<div id="sharePanel">
-  <div class="box">
-    <h3>Notes Share / Backup</h3>
-    <p style="font-size:13px;color:#555">Notes ellam ee device il localStorage il automatic aayi save aavum. Vere oru device il kondu povan / WhatsApp il share cheyyan താഴെ ഉപയോഗിക്കുക.</p>
-    <textarea id="jsonArea" readonly></textarea>
-    <div class="row">
-      <button class="primary" id="copyBtn">📋 Copy</button>
-      <button class="secondary" id="waBtn">💬 WhatsApp</button>
-    </div>
-    <div class="row">
-      <button class="secondary" id="downloadBtn">⬇️ Download JSON</button>
-      <button class="secondary" id="importBtn">⬆️ Import JSON</button>
-    </div>
-    <div class="row">
-      <button class="secondary" id="clearBtn" style="color:#e53935">🗑️ Clear all notes</button>
-      <button class="primary" id="closeShareBtn">Close</button>
-    </div>
-    <input type="file" id="importFile" accept="application/json">
+<header>
+  <div>
+    <h1>📈 ഓഹരി വിശകലന സഹായി</h1>
+    <div class="tag">NSE / BSE Technical + Fundamental Analysis · AI Assisted</div>
   </div>
-</div>
+</header>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<main>
+
+  <div class="card disclaimer">
+    ⚠️ ഇത് ഒരു <b>വിശകലന ഉപകരണം</b> മാത്രമാണ് — ഗ്യാരണ്ടിഡ് ലാഭം / പ്രവചനം നൽകുന്നില്ല. ഓഹരി വിപണിയിൽ റിസ്ക് എപ്പോഴും ഉണ്ട്. നിക്ഷേപ തീരുമാനങ്ങൾ സ്വന്തം ഉത്തരവാദിത്തത്തിൽ എടുക്കുക.
+  </div>
+
+  <!-- API KEY SECTION -->
+  <div class="card" id="keyCard">
+    <h2>Gemini API Key <span class="badge">AI വിശകലനത്തിന് വേണം</span></h2>
+    <div class="apikeyRow">
+      <input type="password" id="apiKey" placeholder="Gemini API Key ഇവിടെ paste ചെയ്യുക">
+      <button class="secondary small" onclick="toggleKeyVisibility()">👁</button>
+      <button class="small" onclick="saveKey()">Save</button>
+    </div>
+    <p class="muted">Key ബ്രൗസറിൽ (localStorage) മാത്രം സേവ് ചെയ്യുന്നു, ഒരു സെർവറിലേക്കും അയക്കുന്നില്ല. Key ഇല്ലാതെയും technical + fundamental data നോക്കാം — AI സമ്മറി മാത്രം key വേണ്ടിവരും. <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">Free key ഇവിടെ നിന്ന് എടുക്കാം</a>.</p>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="card">
+    <h2>ഓഹരി തിരയുക</h2>
+    <div class="row">
+      <input type="text" id="symbolInput" placeholder="ഉദാ: RELIANCE, TCS, INFY, HDFCBANK" onkeydown="if(event.key==='Enter')analyze()">
+      <select id="exchange">
+        <option value="NS">NSE</option>
+        <option value="BO">BSE</option>
+      </select>
+      <button onclick="analyze()">വിശകലനം ചെയ്യുക</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <span class="muted">വേഗം: </span>
+      <a href="#" onclick="quickPick('RELIANCE');return false;" class="muted">RELIANCE</a>
+      <a href="#" onclick="quickPick('TCS');return false;" class="muted">TCS</a>
+      <a href="#" onclick="quickPick('INFY');return false;" class="muted">INFY</a>
+      <a href="#" onclick="quickPick('HDFCBANK');return false;" class="muted">HDFCBANK</a>
+      <a href="#" onclick="quickPick('ITC');return false;" class="muted">ITC</a>
+    </div>
+  </div>
+
+  <div id="status" class="muted" style="margin:8px 0;"></div>
+
+  <!-- SCREENER / RANKING -->
+  <div class="card">
+    <h2>📊 ഓഹരി റാങ്കിംഗ് / സ്ക്രീനർ <span class="badge">Growth · Safety · Momentum</span></h2>
+    <p class="muted">Growth, Safety (profitability/debt), Momentum എന്നിവ ചേർത്ത് ഒരു composite score വച്ച് rank ചെയ്യുന്നു. Sector tag ഒരു static thematic mapping ആണ് — real-time news അല്ല.</p>
+    <div class="row">
+      <select id="universeSelect" style="flex:1;min-width:160px;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--text);">
+        <option value="nifty50">Nifty 50 (വലിയ കമ്പനികൾ)</option>
+        <option value="custom">Custom List</option>
+      </select>
+      <button onclick="startScreen()" id="screenBtn">സ്കാൻ ചെയ്യുക</button>
+    </div>
+    <div id="customListRow" class="hidden" style="margin-top:8px">
+      <input type="text" id="customList" placeholder="ഉദാ: RELIANCE,TCS,INFY,WIPRO,ONGC (comma separated)">
+    </div>
+    <div id="screenProgress" class="muted hidden" style="margin-top:10px"></div>
+    <div id="screenResults" style="margin-top:12px;overflow-x:auto"></div>
+  </div>
+
+  <!-- PRICE + FUNDAMENTALS -->
+  <div class="card hidden" id="priceCard">
+    <h2 id="stockTitle"></h2>
+    <div class="grid" id="priceStats"></div>
+    <canvas id="priceChart"></canvas>
+  </div>
+
+  <div class="card hidden" id="fundCard">
+    <h2>അടിസ്ഥാന വിവരങ്ങൾ (Fundamentals)</h2>
+    <div class="grid" id="fundStats"></div>
+  </div>
+
+  <div class="card hidden" id="techCard">
+    <h2>ടെക്നിക്കൽ ഇൻഡിക്കേറ്ററുകൾ</h2>
+    <div class="grid" id="techStats"></div>
+  </div>
+
+  <!-- AI SECTION -->
+  <div class="card hidden" id="aiCard">
+    <h2>🤖 AI വിശകലന സമ്മറി <span class="badge">Gemini</span></h2>
+    <button id="aiBtn" onclick="runAIAnalysis()">AI വിശകലനം നടത്തുക</button>
+    <div id="aiLoading" class="hidden muted" style="margin-top:10px"><span class="loader"></span> വിശകലനം ചെയ്യുന്നു...</div>
+    <div id="aiOutput" style="margin-top:12px"></div>
+  </div>
+
+</main>
+
 <script>
-// ---------- CONFIG ----------
-const WMS_URL = 'https://ksrec.in/geoserver/Kerala/wms';
-const WMS_LAYER = 'Kerala:KSUDP_KKD_Survey_Parcel_acpc';
-const STORAGE_KEY = 'ksrec_parcel_map_notes_v1';
-const GPS_ZOOM = 16;
+let currentData = null;
+let currentSymbol = null;
 
-// ---------- MAP INIT ----------
-const map = L.map('map', { zoomControl: true }).setView([11.28, 76.23], 13);
-
-const googleRoad = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-  subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-  maxZoom: 22,
-  attribution: 'Google Maps'
-}).addTo(map);
-
-const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-  subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-  maxZoom: 22,
-  attribution: 'Google Maps'
+function toggleKeyVisibility(){
+  const el = document.getElementById('apiKey');
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+function saveKey(){
+  const k = document.getElementById('apiKey').value.trim();
+  if(k){ localStorage.setItem('gemini_api_key', k); setStatus('API Key സേവ് ചെയ്തു ✓'); }
+}
+window.addEventListener('load', ()=>{
+  const k = localStorage.getItem('gemini_api_key');
+  if(k) document.getElementById('apiKey').value = k;
 });
+function quickPick(sym){
+  document.getElementById('symbolInput').value = sym;
+  analyze();
+}
 
-const parcelLayer = L.tileLayer.wms(WMS_URL, {
-  layers: WMS_LAYER,
-  format: 'image/png',
-  transparent: true,
-  version: '1.1.1',
-  maxZoom: 22,
-  attribution: 'KSREC Survey Parcel'
-}).addTo(map);
-
-L.control.layers(
-  { 'Google Roadmap': googleRoad, 'Google Hybrid': googleHybrid },
-  { 'Survey Parcel': parcelLayer },
-  { collapsed: true, position: 'topright' }
-).addTo(map);
-
-function showStatus(msg, autohide) {
+document.getElementById('universeSelect').addEventListener('change', (e)=>{
+  document.getElementById('customListRow').classList.toggle('hidden', e.target.value!=='custom');
+});
+function setStatus(msg, isError){
   const el = document.getElementById('status');
   el.textContent = msg;
-  el.style.display = 'block';
-  if (autohide) setTimeout(() => { el.style.display = 'none'; }, autohide);
+  el.style.color = isError ? 'var(--danger)' : 'var(--muted)';
 }
 
-// ---------- LIVE GPS (two-step: coarse then high accuracy) ----------
-let gpsActive = false;
-let watchId = null;
-let gpsMarker = null;
-let gpsCircle = null;
+// ---------- CORS-proxied fetch chain (matches proven fallback pattern) ----------
+async function fetchWithProxies(url){
+  const proxies = [
+    u => u, // direct (works on some hosts)
+    u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+    u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
+  ];
+  let lastErr;
+  for(const wrap of proxies){
+    try{
+      const res = await fetch(wrap(url));
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const json = await res.json();
+      if(json && !json.chart?.error) return json;
+    }catch(e){ lastErr = e; }
+  }
+  throw lastErr || new Error('എല്ലാ proxy ശ്രമങ്ങളും പരാജയപ്പെട്ടു');
+}
 
-function startGPS() {
-  if (!navigator.geolocation) {
-    showStatus('GPS ee browser il ലഭ്യമല്ല', 3000);
+async function analyze(){
+  const raw = document.getElementById('symbolInput').value.trim().toUpperCase();
+  const exch = document.getElementById('exchange').value;
+  if(!raw){ setStatus('ഓഹരിയുടെ പേര് നൽകുക', true); return; }
+  const symbol = `${raw}.${exch}`;
+  currentSymbol = symbol;
+  setStatus('ഡാറ്റ ലോഡ് ചെയ്യുന്നു...');
+  document.getElementById('priceCard').classList.add('hidden');
+  document.getElementById('fundCard').classList.add('hidden');
+  document.getElementById('techCard').classList.add('hidden');
+  document.getElementById('aiCard').classList.add('hidden');
+  document.getElementById('aiOutput').textContent = '';
+
+  try{
+    const chartUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=1y&interval=1d`;
+    const chartJson = await fetchWithProxies(chartUrl);
+    const result = chartJson.chart.result[0];
+    const closes = result.indicators.quote[0].close;
+    const highs = result.indicators.quote[0].high;
+    const lows = result.indicators.quote[0].low;
+    const vols = result.indicators.quote[0].volume;
+    const timestamps = result.timestamp;
+    const meta = result.meta;
+
+    // clean nulls
+    const clean = [];
+    for(let i=0;i<closes.length;i++){
+      if(closes[i]!=null) clean.push({t:timestamps[i], c:closes[i], h:highs[i], l:lows[i], v:vols[i]});
+    }
+    currentData = { meta, series: clean, symbol };
+
+    renderPrice(currentData);
+    renderTechnicals(currentData);
+    setStatus('');
+
+    // fundamentals (best-effort, separate call, may fail on some proxies)
+    try{
+      const qUrl = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=financialData,defaultKeyStatistics,summaryDetail,price`;
+      const qJson = await fetchWithProxies(qUrl);
+      renderFundamentals(qJson.quoteSummary.result[0]);
+    }catch(e){
+      document.getElementById('fundCard').classList.remove('hidden');
+      document.getElementById('fundStats').innerHTML = `<div class="muted">Fundamentals ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല.</div>`;
+    }
+
+    document.getElementById('aiCard').classList.remove('hidden');
+  }catch(e){
+    setStatus('ഡാറ്റ ലഭിച്ചില്ല. ചിഹ്നം ശരിയാണോ എന്ന് നോക്കുക, അല്ലെങ്കിൽ അല്പസമയത്തിന് ശേഷം വീണ്ടും ശ്രമിക്കുക. ('+e.message+')', true);
+  }
+}
+
+function fmt(n, d=2){ return (n==null || isNaN(n)) ? '—' : Number(n).toLocaleString('en-IN',{maximumFractionDigits:d}); }
+
+function renderPrice(data){
+  const s = data.series;
+  const last = s[s.length-1];
+  const prev = s[s.length-2] || last;
+  const chg = last.c - prev.c;
+  const chgPct = (chg/prev.c)*100;
+  const dirClass = chg>0?'up':chg<0?'down':'flat';
+  const high52 = Math.max(...s.slice(-252).map(x=>x.h));
+  const low52 = Math.min(...s.slice(-252).map(x=>x.l));
+
+  document.getElementById('stockTitle').innerHTML = `${data.symbol} <span class="badge">${data.meta.exchangeName||''}</span>`;
+  document.getElementById('priceStats').innerHTML = `
+    <div class="stat"><div class="k">നിലവിലെ വില</div><div class="v">₹${fmt(last.c)}</div></div>
+    <div class="stat"><div class="k">മാറ്റം</div><div class="v ${dirClass}">${chg>0?'+':''}${fmt(chg)} (${chgPct>0?'+':''}${fmt(chgPct)}%)</div></div>
+    <div class="stat"><div class="k">52W ഉയരം</div><div class="v">₹${fmt(high52)}</div></div>
+    <div class="stat"><div class="k">52W താഴ്ച</div><div class="v">₹${fmt(low52)}</div></div>
+  `;
+  document.getElementById('priceCard').classList.remove('hidden');
+  drawChart(s);
+}
+
+function drawChart(series){
+  const canvas = document.getElementById('priceChart');
+  const dpr = window.devicePixelRatio||1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width*dpr; canvas.height = 280*dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const w = rect.width, h = 280, pad=30;
+  const closes = series.map(x=>x.c);
+  const min = Math.min(...closes), max = Math.max(...closes);
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle = '#4f8cff'; ctx.lineWidth=2; ctx.beginPath();
+  closes.forEach((c,i)=>{
+    const x = pad + (i/(closes.length-1))*(w-2*pad);
+    const y = h-pad - ((c-min)/(max-min||1))*(h-2*pad);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  ctx.fillStyle = '#9aa0ac'; ctx.font='11px sans-serif';
+  ctx.fillText('₹'+fmt(max), 4, pad);
+  ctx.fillText('₹'+fmt(min), 4, h-pad+4);
+}
+
+// ---------- Technical Indicators ----------
+function sma(arr,n){ if(arr.length<n) return null; return arr.slice(-n).reduce((a,b)=>a+b,0)/n; }
+function emaSeries(arr,n){
+  const k = 2/(n+1); let emaArr=[arr[0]];
+  for(let i=1;i<arr.length;i++) emaArr.push(arr[i]*k + emaArr[i-1]*(1-k));
+  return emaArr;
+}
+function rsi(closes,n=14){
+  if(closes.length<n+1) return null;
+  let gains=0, losses=0;
+  for(let i=closes.length-n;i<closes.length;i++){
+    const diff = closes[i]-closes[i-1];
+    if(diff>=0) gains+=diff; else losses-=diff;
+  }
+  const avgG=gains/n, avgL=losses/n;
+  if(avgL===0) return 100;
+  const rs = avgG/avgL;
+  return 100 - (100/(1+rs));
+}
+function macd(closes){
+  const ema12 = emaSeries(closes,12), ema26 = emaSeries(closes,26);
+  const macdLine = ema12.map((v,i)=>v-ema26[i]);
+  const signal = emaSeries(macdLine,9);
+  const last = macdLine.length-1;
+  return { macd: macdLine[last], signal: signal[last], hist: macdLine[last]-signal[last] };
+}
+function bollinger(closes,n=20){
+  if(closes.length<n) return null;
+  const slice = closes.slice(-n);
+  const mean = slice.reduce((a,b)=>a+b,0)/n;
+  const variance = slice.reduce((a,b)=>a+(b-mean)**2,0)/n;
+  const sd = Math.sqrt(variance);
+  return { mid: mean, upper: mean+2*sd, lower: mean-2*sd };
+}
+
+function renderTechnicals(data){
+  const closes = data.series.map(x=>x.c);
+  const sma20 = sma(closes,20), sma50 = sma(closes,50), sma200 = sma(closes,200);
+  const rsiVal = rsi(closes,14);
+  const macdVal = macd(closes);
+  const bb = bollinger(closes,20);
+  const last = closes[closes.length-1];
+
+  const rsiSignal = rsiVal>70?'Overbought (down)':rsiVal<30?'Oversold (up)':'Neutral';
+  const rsiClass = rsiVal>70?'down':rsiVal<30?'up':'flat';
+  const macdSignal = macdVal.hist>0?'Bullish':'Bearish';
+  const macdClass = macdVal.hist>0?'up':'down';
+  const trendSignal = sma200 ? (last>sma200?'Long-term Uptrend':'Long-term Downtrend') : 'N/A (1Y ഡാറ്റ പോര)';
+  const trendClass = sma200 ? (last>sma200?'up':'down') : 'flat';
+
+  document.getElementById('techStats').innerHTML = `
+    <div class="stat"><div class="k">SMA 20</div><div class="v">₹${fmt(sma20)}</div></div>
+    <div class="stat"><div class="k">SMA 50</div><div class="v">₹${fmt(sma50)}</div></div>
+    <div class="stat"><div class="k">SMA 200</div><div class="v">₹${fmt(sma200)}</div></div>
+    <div class="stat"><div class="k">RSI (14)</div><div class="v ${rsiClass}">${fmt(rsiVal,1)} — ${rsiSignal}</div></div>
+    <div class="stat"><div class="k">MACD</div><div class="v ${macdClass}">${macdSignal} (${fmt(macdVal.hist,2)})</div></div>
+    <div class="stat"><div class="k">Bollinger</div><div class="v">₹${fmt(bb?.lower)} – ₹${fmt(bb?.upper)}</div></div>
+    <div class="stat"><div class="k">ട്രെൻഡ്</div><div class="v ${trendClass}">${trendSignal}</div></div>
+  `;
+  document.getElementById('techCard').classList.remove('hidden');
+
+  // stash for AI prompt
+  data.technicals = { sma20, sma50, sma200, rsi: rsiVal, macd: macdVal, bollinger: bb, trendSignal, rsiSignal, macdSignal };
+}
+
+function renderFundamentals(q){
+  const fd = q.financialData||{}, ks = q.defaultKeyStatistics||{}, sd = q.summaryDetail||{}, pr = q.price||{};
+  const g = obj => obj?.raw ?? null;
+  const fund = {
+    marketCap: g(pr.marketCap),
+    pe: g(sd.trailingPE),
+    forwardPE: g(sd.forwardPE),
+    eps: g(ks.trailingEps),
+    pb: g(ks.priceToBook),
+    divYield: g(sd.dividendYield),
+    roe: g(fd.returnOnEquity),
+    debtToEquity: g(fd.debtToEquity),
+    profitMargin: g(fd.profitMargins),
+    revenueGrowth: g(fd.revenueGrowth),
+    recommendation: fd.recommendationKey
+  };
+  currentData.fundamentals = fund;
+  const mcCr = fund.marketCap ? (fund.marketCap/1e7).toFixed(0) : null;
+  document.getElementById('fundStats').innerHTML = `
+    <div class="stat"><div class="k">Market Cap</div><div class="v">${mcCr?'₹'+Number(mcCr).toLocaleString('en-IN')+' Cr':'—'}</div></div>
+    <div class="stat"><div class="k">P/E (TTM)</div><div class="v">${fmt(fund.pe)}</div></div>
+    <div class="stat"><div class="k">Forward P/E</div><div class="v">${fmt(fund.forwardPE)}</div></div>
+    <div class="stat"><div class="k">EPS</div><div class="v">₹${fmt(fund.eps)}</div></div>
+    <div class="stat"><div class="k">P/B</div><div class="v">${fmt(fund.pb)}</div></div>
+    <div class="stat"><div class="k">Div Yield</div><div class="v">${fund.divYield?fmt(fund.divYield*100)+'%':'—'}</div></div>
+    <div class="stat"><div class="k">ROE</div><div class="v">${fund.roe?fmt(fund.roe*100)+'%':'—'}</div></div>
+    <div class="stat"><div class="k">Debt/Equity</div><div class="v">${fmt(fund.debtToEquity)}</div></div>
+    <div class="stat"><div class="k">Profit Margin</div><div class="v">${fund.profitMargin?fmt(fund.profitMargin*100)+'%':'—'}</div></div>
+    <div class="stat"><div class="k">Revenue Growth</div><div class="v">${fund.revenueGrowth?fmt(fund.revenueGrowth*100)+'%':'—'}</div></div>
+  `;
+  document.getElementById('fundCard').classList.remove('hidden');
+}
+
+// ---------- SCREENER / RANKING ----------
+const NIFTY50 = ["RELIANCE","TCS","HDFCBANK","ICICIBANK","INFY","BHARTIARTL","ITC","SBIN",
+  "HINDUNILVR","LT","BAJFINANCE","KOTAKBANK","HCLTECH","MARUTI","AXISBANK","SUNPHARMA",
+  "ASIANPAINT","TITAN","ULTRACEMCO","WIPRO","NESTLEIND","ADANIENT","ONGC","NTPC","POWERGRID",
+  "TATAMOTORS","TATASTEEL","M&M","JSWSTEEL","BAJAJFINSV","COALINDIA","TECHM","GRASIM",
+  "HINDALCO","INDUSINDBK","CIPLA","DRREDDY","EICHERMOT","BRITANNIA","DIVISLAB","APOLLOHOSP",
+  "HEROMOTOCO","BPCL","SBILIFE","HDFCLIFE","TATACONSUM","ADANIPORTS","BAJAJ-AUTO","SHREECEM",
+  "UPL","LTIM"];
+
+// approximate thematic sector tags (static heuristic, NOT live news)
+const SECTOR_THEMES = {
+  "Technology":"IT / Digitalisation", "Software":"IT / Digitalisation",
+  "Semiconductors":"Semiconductors / Chips", "Auto Manufacturers":"EV / Auto Transition",
+  "Auto Parts":"EV / Auto Transition", "Renewable Utilities":"Renewable Energy",
+  "Utilities":"Power / Infra", "Banks":"Financial Services", "Financial":"Financial Services",
+  "Insurance":"Financial Services", "Pharmaceuticals":"Healthcare / Pharma",
+  "Drug Manufacturers":"Healthcare / Pharma", "Telecom":"Digital / Telecom",
+  "Steel":"Infra / Metals", "Metals":"Infra / Metals", "Cement":"Infra / Construction",
+  "Oil & Gas":"Energy", "Consumer Defensive":"FMCG / Consumer", "Consumer Cyclical":"Consumer Discretionary",
+  "Chemicals":"Specialty Chemicals"
+};
+
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+
+function computeScores(qs){
+  const fd = qs.financialData||{}, ks = qs.defaultKeyStatistics||{}, sd = qs.summaryDetail||{}, pr = qs.price||{}, ap = qs.assetProfile||{};
+  const g = o => o?.raw ?? null;
+  const revGrowth = g(fd.revenueGrowth) ?? 0;
+  const earnGrowth = g(fd.earningsGrowth) ?? 0;
+  const roe = g(fd.returnOnEquity) ?? 0;
+  const margin = g(fd.profitMargins) ?? 0;
+  const de = g(fd.debtToEquity); // in %, lower is better
+  const price = g(pr.regularMarketPrice) ?? g(fd.currentPrice);
+  const sma50 = g(sd.fiftyDayAverage);
+  const sma200 = g(sd.twoHundredDayAverage);
+  const dayChgPct = g(pr.regularMarketChangePercent) ?? 0;
+
+  const growthScore = clamp(revGrowth*100,0,50) + clamp(earnGrowth*100,0,50);
+  const safetyScore = clamp(margin*100,0,30) + clamp(roe*100,0,30) +
+    (de!=null ? clamp(40-(de/5),0,40) : 20);
+  let momentumScore = 0;
+  if(price && sma50) momentumScore += price>sma50 ? 25 : 0;
+  if(price && sma200) momentumScore += price>sma200 ? 35 : 0;
+  momentumScore += clamp(dayChgPct*4+20,0,40);
+
+  const overall = growthScore*0.35 + clamp(safetyScore,0,100)*0.35 + clamp(momentumScore,0,100)*0.30;
+  const sector = ap.sector || ap.industry || '';
+  const theme = Object.keys(SECTOR_THEMES).find(k=>sector.includes(k)) ? SECTOR_THEMES[Object.keys(SECTOR_THEMES).find(k=>sector.includes(k))] : (sector||'—');
+
+  return {
+    growth: Math.round(clamp(growthScore,0,100)),
+    safety: Math.round(clamp(safetyScore,0,100)),
+    momentum: Math.round(clamp(momentumScore,0,100)),
+    overall: Math.round(clamp(overall,0,100)),
+    price, sector: theme, dayChgPct
+  };
+}
+
+async function fetchQuoteSummary(symbol){
+  const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=financialData,defaultKeyStatistics,summaryDetail,price,assetProfile`;
+  const json = await fetchWithProxies(url);
+  return json.quoteSummary.result[0];
+}
+
+async function startScreen(){
+  const universe = document.getElementById('universeSelect').value;
+  let symbols;
+  if(universe==='custom'){
+    const raw = document.getElementById('customList').value.trim();
+    if(!raw){ alert('Custom list-ൽ ഓഹരികളുടെ പേരുകൾ ചേർക്കുക'); return; }
+    symbols = raw.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+  } else {
+    symbols = NIFTY50;
+  }
+  symbols = symbols.map(s=> s.includes('.') ? s : s+'.NS');
+
+  const btn = document.getElementById('screenBtn');
+  btn.disabled = true;
+  const progEl = document.getElementById('screenProgress');
+  progEl.classList.remove('hidden');
+  document.getElementById('screenResults').innerHTML = '';
+
+  const results = [];
+  const CONCURRENCY = 4;
+  let idx = 0, done = 0;
+
+  async function worker(){
+    while(idx < symbols.length){
+      const my = idx++; const sym = symbols[my];
+      try{
+        const qs = await fetchQuoteSummary(sym);
+        const scores = computeScores(qs);
+        results.push({ symbol: sym.replace('.NS','').replace('.BO',''), ...scores });
+      }catch(e){ /* skip failed symbol */ }
+      done++;
+      progEl.textContent = `സ്കാൻ ചെയ്യുന്നു... ${done}/${symbols.length}`;
+      await new Promise(r=>setTimeout(r,150));
+    }
+  }
+  await Promise.all(Array.from({length:CONCURRENCY},worker));
+
+  results.sort((a,b)=>b.overall-a.overall);
+  renderScreenResults(results);
+  progEl.classList.add('hidden');
+  btn.disabled = false;
+}
+
+function scoreColor(v){ return v>=65?'up':v>=40?'flat':'down'; }
+
+function renderScreenResults(results){
+  if(!results.length){
+    document.getElementById('screenResults').innerHTML = '<div class="muted">ഫലങ്ങളൊന്നും ലഭിച്ചില്ല — വീണ്ടും ശ്രമിക്കുക.</div>';
     return;
   }
-  gpsActive = true;
-  document.getElementById('gpsBtn').classList.add('active');
-  showStatus('ലൊക്കേഷൻ സെർച്ചിങ്ങ്...', 0);
+  let rows = results.map((r,i)=>`
+    <tr style="cursor:pointer" onclick="quickPick('${r.symbol}')">
+      <td>${i+1}</td>
+      <td><b>${r.symbol}</b><br><span class="muted" style="font-size:11px">${r.sector}</span></td>
+      <td>₹${fmt(r.price)}</td>
+      <td class="${r.dayChgPct>0?'up':r.dayChgPct<0?'down':'flat'}">${r.dayChgPct>0?'+':''}${fmt(r.dayChgPct,1)}%</td>
+      <td class="${scoreColor(r.growth)}">${r.growth}</td>
+      <td class="${scoreColor(r.safety)}">${r.safety}</td>
+      <td class="${scoreColor(r.momentum)}">${r.momentum}</td>
+      <td class="${scoreColor(r.overall)}"><b>${r.overall}</b></td>
+    </tr>`).join('');
+  document.getElementById('screenResults').innerHTML = `
+    <table>
+      <thead><tr><th>#</th><th>ഓഹരി</th><th>വില</th><th>ഇന്ന്</th><th>Growth</th><th>Safety</th><th>Momentum</th><th>Overall</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="muted" style="margin-top:8px">വരിയിൽ click ചെയ്താൽ ആ ഓഹരിയുടെ full analysis ലഭിക്കും. Score 0-100 സ്കെയിലിൽ, higher = better (heuristic, ഗ്യാരണ്ടിയല്ല).</p>
+  `;
+}
 
-  // Step 1: quick coarse fix
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      updateGpsMarker(pos, true);
-      startHighAccuracyWatch();
+// ---------- AI Analysis via Gemini ----------
+async function runAIAnalysis(){
+  const key = localStorage.getItem('gemini_api_key') || document.getElementById('apiKey').value.trim();
+  if(!key){ alert('ദയവായി ആദ്യം Gemini API Key നൽകി Save ചെയ്യുക'); return; }
+  if(!currentData){ return; }
+
+  const btn = document.getElementById('aiBtn');
+  btn.disabled = true;
+  document.getElementById('aiLoading').classList.remove('hidden');
+  document.getElementById('aiOutput').textContent = '';
+
+  const t = currentData.technicals || {};
+  const f = currentData.fundamentals || {};
+  const last = currentData.series[currentData.series.length-1].c;
+
+  const summaryPayload = {
+    symbol: currentData.symbol,
+    currentPrice: last,
+    technical: {
+      sma20: t.sma20, sma50: t.sma50, sma200: t.sma200,
+      rsi: t.rsi, rsiSignal: t.rsiSignal,
+      macdHistogram: t.macd?.hist, macdSignal: t.macdSignal,
+      bollinger: t.bollinger, trend: t.trendSignal
     },
-    err => {
-      // fall straight to high-accuracy watch if coarse fails
-      startHighAccuracyWatch();
-    },
-    { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
-  );
-}
-
-function startHighAccuracyWatch() {
-  watchId = navigator.geolocation.watchPosition(
-    pos => updateGpsMarker(pos, true),
-    err => showStatus('GPS error: ' + err.message, 4000),
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 2000 }
-  );
-}
-
-function updateGpsMarker(pos, recenter) {
-  const { latitude, longitude, accuracy } = pos.coords;
-  const latlng = [latitude, longitude];
-
-  if (!gpsMarker) {
-    gpsMarker = L.marker(latlng, {
-      icon: L.divIcon({ className: '', html: '<div class="gps-dot"></div>', iconSize: [16, 16] })
-    }).addTo(map);
-    gpsCircle = L.circle(latlng, { radius: accuracy, color: '#4285F4', fillOpacity: 0.15, weight: 1 }).addTo(map);
-  } else {
-    gpsMarker.setLatLng(latlng);
-    gpsCircle.setLatLng(latlng);
-    gpsCircle.setRadius(accuracy);
-  }
-
-  if (recenter) {
-    map.setView(latlng, GPS_ZOOM);
-  }
-  showStatus('Live location active (±' + Math.round(accuracy) + 'm)', 2500);
-}
-
-function stopGPS() {
-  gpsActive = false;
-  document.getElementById('gpsBtn').classList.remove('active');
-  if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-  watchId = null;
-  showStatus('Live location നിർത്തി', 2000);
-}
-
-document.getElementById('gpsBtn').addEventListener('click', () => {
-  if (gpsActive) stopGPS(); else startGPS();
-});
-
-// ---------- NOTES ----------
-let noteMode = false;
-let notes = [];
-
-function loadNotes() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    notes = raw ? JSON.parse(raw) : [];
-  } catch (e) { notes = []; }
-  notes.forEach(renderNote);
-}
-
-function saveNotes() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-}
-
-function renderNote(note) {
-  const marker = L.marker([note.lat, note.lng]).addTo(map);
-  note._marker = marker;
-  marker.bindPopup(buildNotePopup(note));
-}
-
-function buildNotePopup(note) {
-  const div = document.createElement('div');
-  div.className = 'note-popup';
-  const ta = document.createElement('textarea');
-  ta.value = note.text || '';
-  ta.placeholder = 'Note ezhuthu...';
-  div.appendChild(ta);
-
-  const row = document.createElement('div');
-  row.className = 'btnrow';
-
-  const saveBtn = document.createElement('button');
-  saveBtn.className = 'save-btn';
-  saveBtn.textContent = 'Save';
-  saveBtn.onclick = () => {
-    note.text = ta.value;
-    note.timestamp = new Date().toISOString();
-    saveNotes();
-    note._marker.closePopup();
-    showStatus('Note save ചെയ്തു', 1500);
+    fundamental: f
   };
 
-  const delBtn = document.createElement('button');
-  delBtn.className = 'del-btn';
-  delBtn.textContent = 'Delete';
-  delBtn.onclick = () => {
-    map.removeLayer(note._marker);
-    notes = notes.filter(n => n !== note);
-    saveNotes();
-  };
+  const prompt = `നീ ഒരു സൂക്ഷ്മതയുള്ള equity research analyst ആണ്. താഴെയുള്ള technical, fundamental ഡാറ്റ അടിസ്ഥാനമാക്കി ${currentData.symbol} എന്ന ഓഹരിയെക്കുറിച്ച് ഒരു balanced വിശകലനം മലയാളത്തിൽ (ആവശ്യമുള്ളിടത്ത് English സാങ്കേതിക പദങ്ങൾ ചേർത്ത്) എഴുതുക.
 
-  row.appendChild(saveBtn);
-  row.appendChild(delBtn);
-  div.appendChild(row);
-  return div;
-}
+ഡാറ്റ:
+${JSON.stringify(summaryPayload, null, 2)}
 
-document.getElementById('noteBtn').addEventListener('click', () => {
-  noteMode = !noteMode;
-  document.getElementById('noteBtn').classList.toggle('active', noteMode);
-  showStatus(noteMode ? 'Map il tap cheyyu note ideendathinu' : 'Note mode off', 2500);
-});
+ഘടന ഇങ്ങനെ ആയിരിക്കണം:
+1. ചുരുക്ക വിലയിരുത്തൽ (2-3 വരി)
+2. Technical കാഴ്ചപ്പാട് (trend, momentum, key levels)
+3. Fundamental കാഴ്ചപ്പാട് (valuation, growth, health)
+4. പ്രധാന റിസ്കുകൾ / ശ്രദ്ധിക്കേണ്ട കാര്യങ്ങൾ
+5. ചുരുക്കം: ഇത് ഒരു "നിക്ഷേപ ഉപദേശം" അല്ല, കേവലം ഡാറ്റ അടിസ്ഥാനത്തിലുള്ള നിരീക്ഷണം മാത്രമാണ് എന്ന് വ്യക്തമായി പറയുക.
 
-map.on('click', (e) => {
-  if (!noteMode) return;
-  const note = { lat: e.latlng.lat, lng: e.latlng.lng, text: '', timestamp: new Date().toISOString() };
-  notes.push(note);
-  const marker = L.marker(e.latlng).addTo(map);
-  note._marker = marker;
-  marker.bindPopup(buildNotePopup(note)).openPopup();
-  saveNotes();
-  noteMode = false;
-  document.getElementById('noteBtn').classList.remove('active');
-});
+ഒരിക്കലും "guaranteed returns", "ഉറപ്പായ ലാഭം", അല്ലെങ്കിൽ കൃത്യമായ short-term price prediction എന്നിവ പറയരുത്. ബാലൻസ്ഡ് ആയി, റിസ്കുകൾ ഉൾപ്പെടെ എഴുതുക.`;
 
-loadNotes();
-
-// Map open cheyyumbol default aayi live location on cheyyuka
-startGPS();
-
-// ---------- SHARE / SAVE / IMPORT / EXPORT ----------
-const sharePanel = document.getElementById('sharePanel');
-const jsonArea = document.getElementById('jsonArea');
-
-function exportPlainNotes() {
-  return notes.map(({ lat, lng, text, timestamp }) => ({ lat, lng, text, timestamp }));
-}
-
-document.getElementById('shareBtn').addEventListener('click', () => {
-  jsonArea.value = JSON.stringify(exportPlainNotes(), null, 2);
-  sharePanel.style.display = 'flex';
-});
-document.getElementById('closeShareBtn').addEventListener('click', () => {
-  sharePanel.style.display = 'none';
-});
-
-document.getElementById('copyBtn').addEventListener('click', () => {
-  jsonArea.select();
-  document.execCommand('copy');
-  showStatus('Copy ചെയ്തു', 1500);
-});
-
-document.getElementById('waBtn').addEventListener('click', () => {
-  const plain = exportPlainNotes();
-  let text = 'KSREC Parcel Map Notes:\n\n';
-  plain.forEach((n, i) => {
-    text += `${i + 1}. ${n.text || '(no text)'}\nhttps://www.google.com/maps?q=${n.lat},${n.lng}\n\n`;
-  });
-  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
-});
-
-document.getElementById('downloadBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(exportPlainNotes(), null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'ksrec_map_notes.json';
-  a.click();
-  URL.revokeObjectURL(url);
-});
-
-document.getElementById('importBtn').addEventListener('click', () => {
-  document.getElementById('importFile').click();
-});
-document.getElementById('importFile').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const imported = JSON.parse(reader.result);
-      imported.forEach(n => {
-        const note = { lat: n.lat, lng: n.lng, text: n.text || '', timestamp: n.timestamp || new Date().toISOString() };
-        notes.push(note);
-        renderNote(note);
-      });
-      saveNotes();
-      showStatus('Import ചെയ്തു: ' + imported.length + ' notes', 2500);
-      sharePanel.style.display = 'none';
-    } catch (err) {
-      showStatus('Import error: file thettanu', 3000);
+  try{
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
+    if(!res.ok){
+      const errText = await res.text();
+      throw new Error('API error: '+res.status+' — '+errText.slice(0,200));
     }
-  };
-  reader.readAsText(file);
-});
-
-document.getElementById('clearBtn').addEventListener('click', () => {
-  if (!confirm('Ella notes um delete cheyyanoo? Ithu undo cheyyan pattilla.')) return;
-  notes.forEach(n => map.removeLayer(n._marker));
-  notes = [];
-  saveNotes();
-  sharePanel.style.display = 'none';
-});
+    const json = await res.json();
+    const text = json.candidates?.[0]?.content?.parts?.map(p=>p.text).join('') || 'പ്രതികരണം ലഭിച്ചില്ല.';
+    document.getElementById('aiOutput').textContent = text;
+  }catch(e){
+    document.getElementById('aiOutput').innerHTML = `<span style="color:var(--danger)">പിശക്: ${e.message}</span>`;
+  }finally{
+    btn.disabled = false;
+    document.getElementById('aiLoading').classList.add('hidden');
+  }
+}
 </script>
 </body>
 </html>
