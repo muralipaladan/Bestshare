@@ -79,6 +79,12 @@
     <p class="muted">Key ബ്രൗസറിൽ (localStorage) മാത്രം സേവ് ചെയ്യുന്നു, ഒരു സെർവറിലേക്കും അയക്കുന്നില്ല. Key ഇല്ലാതെയും technical + fundamental data നോക്കാം — AI സമ്മറി മാത്രം key വേണ്ടിവരും. <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">Free key ഇവിടെ നിന്ന് എടുക്കാം</a>.</p>
   </div>
 
+  <!-- COLLAPSED KEY STATUS (shown after key is saved) -->
+  <div class="card hidden" id="keyCardCollapsed" style="padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
+    <span class="muted">🔑 API Key സേവ് ചെയ്തിട്ടുണ്ട് ✓</span>
+    <button class="secondary small" onclick="editKey()">മാറ്റുക</button>
+  </div>
+
   <!-- SEARCH -->
   <div class="card">
     <h2>ഓഹരി തിരയുക</h2>
@@ -157,11 +163,26 @@ function toggleKeyVisibility(){
 }
 function saveKey(){
   const k = document.getElementById('apiKey').value.trim();
-  if(k){ localStorage.setItem('gemini_api_key', k); setStatus('API Key സേവ് ചെയ്തു ✓'); }
+  if(k){
+    localStorage.setItem('gemini_api_key', k);
+    setStatus('API Key സേവ് ചെയ്തു ✓');
+    showKeyCollapsed();
+  }
+}
+function showKeyCollapsed(){
+  document.getElementById('keyCard').classList.add('hidden');
+  document.getElementById('keyCardCollapsed').classList.remove('hidden');
+}
+function editKey(){
+  document.getElementById('keyCard').classList.remove('hidden');
+  document.getElementById('keyCardCollapsed').classList.add('hidden');
 }
 window.addEventListener('load', ()=>{
   const k = localStorage.getItem('gemini_api_key');
-  if(k) document.getElementById('apiKey').value = k;
+  if(k){
+    document.getElementById('apiKey').value = k;
+    showKeyCollapsed();
+  }
 });
 function quickPick(sym){
   document.getElementById('symbolInput').value = sym;
@@ -178,21 +199,36 @@ function setStatus(msg, isError){
 }
 
 // ---------- CORS-proxied fetch chain (matches proven fallback pattern) ----------
-async function fetchWithProxies(url){
+async function fetchWithTimeout(url, ms){
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), ms);
+  try{
+    return await fetch(url, { signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchWithProxies(url, timeoutMs=6000){
+  // Fastest/most reliable proxies first; each attempt is capped so a dead
+  // proxy can't stall the whole chain (previously had no timeout at all).
   const proxies = [
-    u => u, // direct (works on some hosts)
-    u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
     u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
+    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+    u => u, // direct (rarely works from browser due to CORS, kept as last resort)
   ];
   let lastErr;
   for(const wrap of proxies){
     try{
-      const res = await fetch(wrap(url));
+      const res = await fetchWithTimeout(wrap(url), timeoutMs);
       if(!res.ok) throw new Error('HTTP '+res.status);
       const json = await res.json();
       if(json && !json.chart?.error) return json;
-    }catch(e){ lastErr = e; }
+      throw new Error('empty/invalid response');
+    }catch(e){
+      lastErr = e.name==='AbortError' ? new Error('timeout') : e;
+    }
   }
   throw lastErr || new Error('എല്ലാ proxy ശ്രമങ്ങളും പരാജയപ്പെട്ടു');
 }
