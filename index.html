@@ -209,23 +209,27 @@ async function fetchWithTimeout(url, ms){
   }
 }
 
-async function fetchWithProxies(url, timeoutMs=6000){
-  // Fastest/most reliable proxies first; each attempt is capped so a dead
-  // proxy can't stall the whole chain (previously had no timeout at all).
+// Updated fetchWithProxies function
+async function fetchWithProxies(url, timeoutMs=8000){
   const proxies = [
     u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
     u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
-    u => u, // direct (rarely works from browser due to CORS, kept as last resort)
+    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    u => u // direct (last resort)
   ];
   let lastErr;
   for(const wrap of proxies){
     try{
       const res = await fetchWithTimeout(wrap(url), timeoutMs);
       if(!res.ok) throw new Error('HTTP '+res.status);
-      const json = await res.json();
-      if(json && !json.chart?.error) return json;
-      throw new Error('empty/invalid response');
+      const text = await res.text();
+      const json = JSON.parse(text); 
+      
+      // Yahoo API errors check
+      if(json && !json.chart?.error && !json.quoteSummary?.error) {
+          return json;
+      }
+      throw new Error('API Error');
     }catch(e){
       lastErr = e.name==='AbortError' ? new Error('timeout') : e;
     }
@@ -492,6 +496,7 @@ async function fetchQuoteSummary(symbol){
   return json.quoteSummary.result[0];
 }
 
+// Updated startScreen function
 async function startScreen(){
   const universe = document.getElementById('universeSelect').value;
   let symbols;
@@ -511,7 +516,7 @@ async function startScreen(){
   document.getElementById('screenResults').innerHTML = '';
 
   const results = [];
-  const CONCURRENCY = 4;
+  const CONCURRENCY = 2; // 4-ൽ നിന്നും 2 ആക്കി കുറച്ചു
   let idx = 0, done = 0;
 
   async function worker(){
@@ -521,10 +526,13 @@ async function startScreen(){
         const qs = await fetchQuoteSummary(sym);
         const scores = computeScores(qs);
         results.push({ symbol: sym.replace('.NS','').replace('.BO',''), ...scores });
-      }catch(e){ /* skip failed symbol */ }
+      }catch(e){ 
+        console.warn(`${sym} ഡാറ്റ എടുക്കാൻ കഴിഞ്ഞില്ല:`, e.message); 
+      }
       done++;
       progEl.textContent = `സ്കാൻ ചെയ്യുന്നു... ${done}/${symbols.length}`;
-      await new Promise(r=>setTimeout(r,150));
+      // ഡിലേ 150ms-ൽ നിന്നും 600ms ആക്കി വർദ്ധിപ്പിച്ചു
+      await new Promise(r=>setTimeout(r, 600)); 
     }
   }
   await Promise.all(Array.from({length:CONCURRENCY},worker));
