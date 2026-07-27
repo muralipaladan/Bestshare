@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeepSeek NSE Top 10 Picks</title>
+    <title>DeepSeek NSE Top 10 Picks · Entry & Target</title>
     <!-- Font Awesome 6 (free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -75,7 +75,7 @@
 
         .stock-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.2rem;
             margin-top: 1.2rem;
         }
@@ -122,12 +122,28 @@
         .stock-card .metrics {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.6rem 1.2rem;
+            gap: 0.4rem 1rem;
             margin: 0.6rem 0 0.4rem 0;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
         }
         .stock-card .metrics span { opacity: 0.8; }
         .stock-card .metrics .highlight { color: #f6b83e; font-weight: 500; }
+
+        .entry-exit-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem 1.2rem;
+            background: #0b1f32;
+            padding: 0.5rem 0.8rem;
+            border-radius: 1.4rem;
+            margin: 0.5rem 0 0.4rem 0;
+            border: 1px solid #2f4b6b;
+            font-size: 0.8rem;
+        }
+        .entry-exit-row i { color: #f6b83e; width: 1.2rem; text-align: center; }
+        .entry-exit-row .buy { color: #8bc34a; }
+        .entry-exit-row .sell { color: #ef9a9a; }
+
         .stock-card .reason {
             background: #0b1f32;
             padding: 0.5rem 0.8rem;
@@ -233,8 +249,7 @@
     (function() {
         "use strict";
 
-        // ---------- Top 10 "Excellent" stocks as per DeepSeek Screener ----------
-        // (ഫണ്ടമെന്റൽ + ടെക്നിക്കൽ മാനദണ്ഡങ്ങൾ അടിസ്ഥാനമാക്കി)
+        // ---------- Top 10 "Excellent" stocks with Entry & Target ----------
         const topPicks = [
             {
                 symbol: "RELIANCE",
@@ -242,7 +257,10 @@
                 sector: "Energy",
                 rank: 1,
                 reason: "ROE 18.2%, D/E 0.9, RSI 58, 200 DMA മുകളിൽ, MACD ബുള്ളിഷ്. ശക്തമായ വളർച്ചാ സാധ്യത.",
-                metrics: { pe: 22.4, roe: 18.2, debtEquity: 0.9, epsGrowth: 14.5, rsi: 58, above200: true }
+                metrics: { pe: 22.4, roe: 18.2, debtEquity: 0.9, epsGrowth: 14.5, rsi: 58, above200: true },
+                entry: "₹ 2,450 - 2,520",
+                target: "₹ 2,720",
+                stopLoss: "₹ 2,320"
             },
             {
                 symbol: "INFY",
@@ -250,7 +268,10 @@
                 sector: "IT",
                 rank: 2,
                 reason: "ROE 30.1%, D/E 0.08, RSI 52, 200 DMA മുകളിൽ, വോളിയം ശരാശരിക്ക് മുകളിൽ. മൂല്യവും വളർച്ചയും.",
-                metrics: { pe: 24.8, roe: 30.1, debtEquity: 0.08, epsGrowth: 9.5, rsi: 52, above200: true }
+                metrics: { pe: 24.8, roe: 30.1, debtEquity: 0.08, epsGrowth: 9.5, rsi: 52, above200: true },
+                entry: "₹ 1,420 - 1,460",
+                target: "₹ 1,580",
+                stopLoss: "₹ 1,370"
             },
             {
                 symbol: "HDFC",
@@ -258,7 +279,10 @@
                 sector: "Banking",
                 rank: 3,
                 reason: "ROE 16.5%, D/E 0.6, RSI 61, MACD ബുള്ളിഷ്. ബാങ്കിംഗ് മേഖലയിലെ ഗുണമേന്മയുള്ള ഓഹരി.",
-                metrics: { pe: 18.9, roe: 16.5, debtEquity: 0.6, epsGrowth: 13.2, rsi: 61, above200: false }
+                metrics: { pe: 18.9, roe: 16.5, debtEquity: 0.6, epsGrowth: 13.2, rsi: 61, above200: false },
+                entry: "₹ 1,550 - 1,600",
+                target: "₹ 1,720",
+                stopLoss: "₹ 1,500"
             },
             {
                 symbol: "ITC",
@@ -266,7 +290,10 @@
                 sector: "Consumer",
                 rank: 4,
                 reason: "ROE 24.8%, D/E 0.25, RSI 56, 200 DMA മുകളിൽ. ഡിവിഡൻ്റും വളർച്ചയും ഒരുമിച്ച്.",
-                metrics: { pe: 19.0, roe: 24.8, debtEquity: 0.25, epsGrowth: 10.1, rsi: 56, above200: true }
+                metrics: { pe: 19.0, roe: 24.8, debtEquity: 0.25, epsGrowth: 10.1, rsi: 56, above200: true },
+                entry: "₹ 420 - 440",
+                target: "₹ 470",
+                stopLoss: "₹ 405"
             },
             {
                 symbol: "TCS",
@@ -274,7 +301,10 @@
                 sector: "IT",
                 rank: 5,
                 reason: "ROE 32.4%, D/E 0.1, RSI 44, 200 DMA മുകളിൽ. ഐടി മേഖലയിലെ ഏറ്റവും ശക്തമായ ഫണ്ടമെന്റൽ.",
-                metrics: { pe: 26.1, roe: 32.4, debtEquity: 0.1, epsGrowth: 8.3, rsi: 44, above200: true }
+                metrics: { pe: 26.1, roe: 32.4, debtEquity: 0.1, epsGrowth: 8.3, rsi: 44, above200: true },
+                entry: "₹ 3,650 - 3,720",
+                target: "₹ 3,920",
+                stopLoss: "₹ 3,550"
             },
             {
                 symbol: "MARUTI",
@@ -282,7 +312,10 @@
                 sector: "Auto",
                 rank: 6,
                 reason: "ROE 19.7%, D/E 0.3, RSI 55, 200 DMA മുകളിൽ. ഓട്ടോ മേഖലയിലെ മികച്ച വളർച്ച.",
-                metrics: { pe: 21.5, roe: 19.7, debtEquity: 0.3, epsGrowth: 12.4, rsi: 55, above200: true }
+                metrics: { pe: 21.5, roe: 19.7, debtEquity: 0.3, epsGrowth: 12.4, rsi: 55, above200: true },
+                entry: "₹ 11,200 - 11,400",
+                target: "₹ 12,100",
+                stopLoss: "₹ 10,900"
             },
             {
                 symbol: "HCLTECH",
@@ -290,7 +323,10 @@
                 sector: "IT",
                 rank: 7,
                 reason: "ROE 22.3%, D/E 0.12, RSI 49, 200 DMA മുകളിൽ. ഐടി മേഖലയിലെ വിലകുറഞ്ഞ ഓഹരി.",
-                metrics: { pe: 20.2, roe: 22.3, debtEquity: 0.12, epsGrowth: 11.8, rsi: 49, above200: true }
+                metrics: { pe: 20.2, roe: 22.3, debtEquity: 0.12, epsGrowth: 11.8, rsi: 49, above200: true },
+                entry: "₹ 1,380 - 1,410",
+                target: "₹ 1,520",
+                stopLoss: "₹ 1,330"
             },
             {
                 symbol: "ASIANPAINT",
@@ -298,7 +334,10 @@
                 sector: "Consumer",
                 rank: 8,
                 reason: "ROE 26.5%, D/E 0.15, RSI 54, 200 DMA മുകളിൽ. ഉപഭോക്തൃ മേഖലയിലെ ഗുണമേന്മ.",
-                metrics: { pe: 28.3, roe: 26.5, debtEquity: 0.15, epsGrowth: 9.2, rsi: 54, above200: true }
+                metrics: { pe: 28.3, roe: 26.5, debtEquity: 0.15, epsGrowth: 9.2, rsi: 54, above200: true },
+                entry: "₹ 2,850 - 2,920",
+                target: "₹ 3,150",
+                stopLoss: "₹ 2,750"
             },
             {
                 symbol: "TITAN",
@@ -306,7 +345,10 @@
                 sector: "Consumer",
                 rank: 9,
                 reason: "ROE 23.1%, D/E 0.2, RSI 60, 200 DMA മുകളിൽ. ആഡംബര ഉപഭോക്തൃ വളർച്ച.",
-                metrics: { pe: 27.4, roe: 23.1, debtEquity: 0.2, epsGrowth: 14.2, rsi: 60, above200: true }
+                metrics: { pe: 27.4, roe: 23.1, debtEquity: 0.2, epsGrowth: 14.2, rsi: 60, above200: true },
+                entry: "₹ 3,450 - 3,520",
+                target: "₹ 3,800",
+                stopLoss: "₹ 3,320"
             },
             {
                 symbol: "SUNPHARMA",
@@ -314,7 +356,10 @@
                 sector: "Pharma",
                 rank: 10,
                 reason: "ROE 17.8%, D/E 0.4, RSI 47, 200 DMA മുകളിൽ. ഫാർമ മേഖലയിലെ ശക്തമായ പുനരുജ്ജീവനം.",
-                metrics: { pe: 23.6, roe: 17.8, debtEquity: 0.4, epsGrowth: 10.5, rsi: 47, above200: true }
+                metrics: { pe: 23.6, roe: 17.8, debtEquity: 0.4, epsGrowth: 10.5, rsi: 47, above200: true },
+                entry: "₹ 1,680 - 1,720",
+                target: "₹ 1,850",
+                stopLoss: "₹ 1,620"
             }
         ];
 
@@ -340,6 +385,12 @@
                             <span><i class="fas fa-wave-square"></i> RSI: <span class="highlight">${m.rsi}</span></span>
                             <span><i class="fas fa-arrow-trend-up"></i> 200DMA: ${m.above200 ? '✅' : '❌'}</span>
                         </div>
+                        <!-- Entry / Target / StopLoss -->
+                        <div class="entry-exit-row">
+                            <span><i class="fas fa-arrow-right buy"></i> <strong>വാങ്ങുക:</strong> ${stock.entry}</span>
+                            <span><i class="fas fa-flag-checkered" style="color:#ffd54f;"></i> <strong>ടാർഗറ്റ്:</strong> ${stock.target}</span>
+                            <span><i class="fas fa-stop-circle sell"></i> <strong>SL:</strong> ${stock.stopLoss}</span>
+                        </div>
                         <div class="reason">
                             <i class="fas fa-lightbulb"></i> ${stock.reason}
                         </div>
@@ -355,20 +406,14 @@
         // refresh button
         document.getElementById('refreshPicks').addEventListener('click', function(e) {
             e.preventDefault();
-            // Shuffle the order slightly to simulate "weekly refresh" but keep the same stocks
-            // or just re-render with a small animation effect.
-            // For now, we just re-render (maybe reshuffle the array)
-            // Actually we keep the order but we can "refresh" the display
             renderPicks();
-            // subtle feedback
             this.innerHTML = '<i class="fas fa-check"></i> പുതുക്കി';
             setTimeout(() => {
                 this.innerHTML = '<i class="fas fa-sync-alt"></i> പുതുക്കുക';
             }, 1500);
         });
 
-        // Also re-render on any click (just for demo)
-        console.log('✅ DeepSeek NSE Top 10 Picks loaded. Based on screener: ROE>18%, P/E<30, D/E<1.2, EPS>10%, RSI 40-65, 200DMA above.');
+        console.log('✅ DeepSeek NSE Top 10 Picks with Entry, Target & SL loaded.');
     })();
 </script>
 
