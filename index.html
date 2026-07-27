@@ -241,6 +241,34 @@
             opacity: 0.6;
             margin-top: 0.3rem;
         }
+
+        .paste-panel {
+            margin-top: 0.8rem;
+            background: #102433;
+            border-radius: 1.5rem;
+            padding: 1rem 1.4rem;
+            border: 1px solid #2f4b6b;
+        }
+        .paste-panel summary { cursor: pointer; font-weight: 500; font-size: 0.9rem; }
+        .paste-panel summary i { color: #f6b83e; margin-right: 0.4rem; }
+        .paste-panel textarea {
+            width: 100%;
+            margin-top: 0.7rem;
+            background: #0b1f32;
+            border: 1px solid #2f4b6b;
+            border-radius: 0.8rem;
+            color: #e8f0fe;
+            padding: 0.6rem;
+            font-family: monospace;
+            font-size: 0.78rem;
+            min-height: 110px;
+            resize: vertical;
+        }
+        .paste-panel .hint { font-size: 0.72rem; opacity: 0.6; margin-top: 0.4rem; }
+        .paste-panel .actions { display: flex; gap: 0.6rem; margin-top: 0.7rem; flex-wrap: wrap; align-items: center; }
+        .paste-status { font-size: 0.78rem; }
+        .paste-status.err { color: #ef9a9a; }
+        .paste-status.ok { color: #8bc34a; }
     </style>
 </head>
 <body>
@@ -268,6 +296,20 @@
         <i class="fas fa-triangle-exclamation"></i>
         <strong>മുന്നറിയിപ്പ്:</strong> ഇത് നിക്ഷേപ ഉപദേശമല്ല (Not Investment Advice). Entry/Target/Stop-loss ഇവ ജനറൽ അനാലിസിസ് മാത്രമാണ്, ഗ്യാരണ്ടിയല്ല. NSE-ൽ നിക്ഷേപിക്കുന്നതിന് മുൻപ് സ്വന്തം റിസർച്ച് നടത്തുകയോ SEBI-രജിസ്റ്റർ ചെയ്ത നിക്ഷേപ ഉപദേഷ്ടാവിനെ സമീപിക്കുകയോ ചെയ്യുക.
     </div>
+
+    <details class="paste-panel" id="pastePanel">
+        <summary><i class="fas fa-table"></i> Google Sheet (GOOGLEFINANCE) ഡാറ്റ Paste ചെയ്യുക</summary>
+        <div class="hint">
+            CSV format, ഒരു വരിയിൽ ഒരു stock: <code>symbol,price,prevClose,week52High,week52Low,pe,roe,de,epsGrowth</code><br>
+            ഉദാ: <code>RELIANCE,2480.5,2465,3025,2220,22.4,18.2,0.9,14.5</code> · pe/roe/de/epsGrowth ഒഴിവാക്കാം (ശൂന്യമായി വിടുക)
+        </div>
+        <textarea id="sheetDataInput" placeholder="symbol,price,prevClose,week52High,week52Low,pe,roe,de,epsGrowth&#10;RELIANCE,2480.5,2465,3025,2220,22.4,18.2,0.9,14.5&#10;INFY,1435.2,1420,1850,1290,,,,"></textarea>
+        <div class="actions">
+            <button class="btn" id="analyseSheetData"><i class="fas fa-magnifying-glass-chart"></i> Analyse ചെയ്യുക</button>
+            <button class="btn btn-secondary" id="clearSheetData"><i class="fas fa-broom"></i> മായ്ക്കുക, ലൈവ് ഡാറ്റയിലേക്ക്</button>
+            <span class="paste-status" id="pasteStatus"></span>
+        </div>
+    </details>
 
     <!-- Stock Grid -->
     <div class="stock-grid" id="stockGrid">
@@ -608,6 +650,73 @@
                 (dipCount > 0 ? ` · ${dipCount} എണ്ണം ഡിപ്പിൽ` : '') +
                 (failCount > 0 ? ` · ${failCount} എണ്ണം fetch പരാജയപ്പെട്ടു` : '');
         }
+
+        // ---------- Manual paste mode: parse GOOGLEFINANCE-sourced CSV pasted by user, bypasses live fetch ----------
+        function parseSheetCsv(raw) {
+            const lines = raw.trim().split('\n').map(l => l.trim()).filter(Boolean);
+            if (!lines.length) throw new Error('ഒന്നും paste ചെയ്തിട്ടില്ല');
+
+            // skip a header row if the first cell isn't a plausible symbol-with-number-second-column
+            let startIdx = 0;
+            const firstCols = lines[0].split(',').map(c => c.trim());
+            if (isNaN(parseFloat(firstCols[1]))) startIdx = 1;
+
+            const parsed = [];
+            for (let i = startIdx; i < lines.length; i++) {
+                const cols = lines[i].split(',').map(c => c.trim());
+                if (cols.length < 2) continue;
+                const symbol = cols[0].toUpperCase();
+                const price = parseFloat(cols[1]);
+                if (!symbol || isNaN(price)) continue;
+                const num = (v) => (v !== undefined && v !== '' && !isNaN(parseFloat(v))) ? parseFloat(v) : null;
+                const candidate = CANDIDATE_UNIVERSE.find(c => c.symbol === symbol);
+                parsed.push({
+                    symbol,
+                    name: candidate ? candidate.name : symbol,
+                    sector: candidate ? candidate.sector : 'Other',
+                    price,
+                    prevClose: num(cols[2]),
+                    week52High: num(cols[3]),
+                    week52Low: num(cols[4]),
+                    pe: num(cols[5]),
+                    roe: num(cols[6]),
+                    de: num(cols[7]),
+                    epsGrowth: num(cols[8]),
+                    momentum3m: null
+                });
+            }
+            if (!parsed.length) throw new Error('CSV parse ചെയ്യാൻ കഴിഞ്ഞില്ല — format പരിശോധിക്കുക');
+            return parsed;
+        }
+
+        const pasteStatusEl = document.getElementById('pasteStatus');
+
+        document.getElementById('analyseSheetData').addEventListener('click', function() {
+            const raw = document.getElementById('sheetDataInput').value;
+            try {
+                const rows = parseSheetCsv(raw);
+                rows.forEach(s => { s.score = scoreStock(s); });
+                rows.sort((a, b) => b.score - a.score);
+                const top10 = rows.slice(0, 10);
+                renderStocks(top10);
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                lastUpdatedEl.innerHTML = `<i class="fas fa-file-csv" style="color:#f6b83e;"></i> Google Sheet ഡാറ്റയിൽ നിന്ന് അനലൈസ് ചെയ്തു (paste ചെയ്തത്: ${timeStr})`;
+                pasteStatusEl.className = 'paste-status ok';
+                pasteStatusEl.innerHTML = `<i class="fas fa-check-circle"></i> ${rows.length} stocks അനലൈസ് ചെയ്തു`;
+            } catch (err) {
+                pasteStatusEl.className = 'paste-status err';
+                pasteStatusEl.innerHTML = `<i class="fas fa-circle-exclamation"></i> ${err.message}`;
+            }
+        });
+
+        document.getElementById('clearSheetData').addEventListener('click', function() {
+            document.getElementById('sheetDataInput').value = '';
+            pasteStatusEl.className = 'paste-status';
+            pasteStatusEl.innerHTML = '';
+            document.getElementById('pastePanel').open = false;
+            runScreener();
+        });
 
         // initial screener run
         runScreener();
