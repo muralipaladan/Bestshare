@@ -347,18 +347,23 @@
         const grid = document.getElementById('stockGrid');
         const lastUpdatedEl = document.getElementById('lastUpdated');
 
-        // ---------- CORS proxy fallback chain (same pattern used across other tools) ----------
+        // ---------- CORS proxy fallback chain (widened for redundancy) ----------
         const CORS_PROXIES = [
             url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
             url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-            url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+            url => `https://thingproxy.freeboard.io/fetch/${url}`,
+            url => `https://cors.eu.org/${url}`
         ];
 
         async function fetchWithProxyFallback(targetUrl) {
             let lastErr;
             for (const buildProxyUrl of CORS_PROXIES) {
                 try {
-                    const res = await fetch(buildProxyUrl(targetUrl), { cache: 'no-store' });
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 9000);
+                    const res = await fetch(buildProxyUrl(targetUrl), { cache: 'no-store', signal: controller.signal });
+                    clearTimeout(timeoutId);
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     return await res.json();
                 } catch (err) {
@@ -368,33 +373,63 @@
             throw lastErr || new Error('എല്ലാ പ്രോക്സികളും പരാജയപ്പെട്ടു');
         }
 
-        // Fetches live price + fundamentals + analyst target for one NSE symbol
-        async function fetchStockData(candidate) {
-            const symbol = candidate.symbol;
-            const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}.NS?modules=price,summaryDetail,financialData,defaultKeyStatistics`;
+        // ---------- Primary data source: chart endpoint (no crumb/cookie auth needed, works via CORS proxies) ----------
+        async function fetchChartData(symbol) {
+            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}.NS?interval=1d&range=1y`;
             const data = await fetchWithProxyFallback(url);
-            const result = data?.quoteSummary?.result?.[0];
-            if (!result) throw new Error('ഡാറ്റ ലഭ്യമല്ല');
+            const result = data?.chart?.result?.[0];
+            if (!result || !result.meta) throw new Error('വില ഡാറ്റ ലഭ്യമല്ല');
 
-            const price = result.price?.regularMarketPrice?.raw;
-            const prevClose = result.summaryDetail?.previousClose?.raw ?? result.price?.regularMarketPreviousClose?.raw;
-            const pe = result.summaryDetail?.trailingPE?.raw ?? null;
-            const roe = result.financialData?.returnOnEquity?.raw != null ? result.financialData.returnOnEquity.raw * 100 : null;
-            let de = result.financialData?.debtToEquity?.raw ?? null;
-            if (de != null && de > 10) de = de / 100; // Yahoo often reports D/E as a percentage-like number
-            const epsGrowth = result.financialData?.earningsGrowth?.raw != null ? result.financialData.earningsGrowth.raw * 100 : null;
-            const targetMean = result.financialData?.targetMeanPrice?.raw ?? null;
-            const recommendation = result.financialData?.recommendationKey ?? null;
-            const week52Low = result.summaryDetail?.fiftyTwoWeekLow?.raw ?? null;
-            const week52High = result.summaryDetail?.fiftyTwoWeekHigh?.raw ?? null;
-
+            const meta = result.meta;
+            const price = meta.regularMarketPrice;
+            const prevClose = meta.previousClose ?? meta.chartPreviousClose;
             if (!price) throw new Error('വില ലഭ്യമല്ല');
 
-            return {
-                symbol, name: candidate.name, sector: candidate.sector,
-                price, prevClose, pe, roe, de, epsGrowth, targetMean, recommendation,
-                week52Low, week52High
-            };
+            const closes = (result.indicators?.quote?.[0]?.close || []).filter(c => c != null);
+            let week52High = meta.fiftyTwoWeekHigh ?? null;
+            let week52Low = meta.fiftyTwoWeekLow ?? null;
+            if (closes.length) {
+                week52High = week52High != null ? Math.max(week52High, ...closes, price) : Math.max(...closes, price);
+                week52Low = week52Low != null ? Math.min(week52Low, ...closes, price) : Math.min(...closes, price);
+            }
+
+            // ~3-month momentum as a live substitute for "growth potential" when fundamentals aren't available
+            let momentum3m = null;
+            if (closes.length >= 63) {
+                const past = closes[closes.length - 63];
+                if (past) momentum3m = ((price - past) / past) * 100;
+            }
+
+            return { price, prevClose, week52High, week52Low, momentum3m };
+        }
+
+        // ---------- Enrichment source: fundamentals (P/E, ROE, D/E, analyst target). Best-effort — Yahoo often
+        // blocks this endpoint without a browser cookie/crumb, so failures here are silently tolerated. ----------
+        async function fetchFundamentals(symbol) {
+            try {
+                const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}.NS?modules=summaryDetail,financialData`;
+                const data = await fetchWithProxyFallback(url);
+                const result = data?.quoteSummary?.result?.[0];
+                if (!result) return {};
+                const pe = result.summaryDetail?.trailingPE?.raw ?? null;
+                const roe = result.financialData?.returnOnEquity?.raw != null ? result.financialData.returnOnEquity.raw * 100 : null;
+                let de = result.financialData?.debtToEquity?.raw ?? null;
+                if (de != null && de > 10) de = de / 100; // Yahoo often reports D/E as a percentage-like number
+                const epsGrowth = result.financialData?.earningsGrowth?.raw != null ? result.financialData.earningsGrowth.raw * 100 : null;
+                const targetMean = result.financialData?.targetMeanPrice?.raw ?? null;
+                const recommendation = result.financialData?.recommendationKey ?? null;
+                return { pe, roe, de, epsGrowth, targetMean, recommendation };
+            } catch (err) {
+                return {}; // fundamentals are optional — chart data alone is enough to keep the screener working
+            }
+        }
+
+        // Fetches live price/range (required) + fundamentals (optional) for one NSE symbol
+        async function fetchStockData(candidate) {
+            const symbol = candidate.symbol;
+            const chart = await fetchChartData(symbol); // must succeed, or this stock is dropped
+            const fundamentals = await fetchFundamentals(symbol); // best-effort, degrades gracefully
+            return { symbol, name: candidate.name, sector: candidate.sector, ...chart, ...fundamentals };
         }
 
         // Simple concurrency-limited batch runner so we don't hammer the free CORS proxies
@@ -408,26 +443,35 @@
             return settled;
         }
 
-        // ---------- Composite scoring: higher ROE, lower D/E, lower P/E, higher analyst upside = better ----------
+        // ---------- Composite scoring ----------
+        // Primary signals (always available from chart data): 52-week range position (value) + 3-month momentum.
+        // Bonus signals (only when fundamentals fetch succeeds): ROE, D/E, P/E, analyst upside.
         function scoreStock(s) {
             let score = 0;
-            if (s.roe != null) score += Math.min(s.roe, 40) * 1.2;               // reward high ROE, cap influence
-            if (s.de != null) score += Math.max(0, (1.5 - s.de)) * 15;           // reward low debt
-            if (s.pe != null && s.pe > 0) score += Math.max(0, (35 - s.pe)) * 1.0; // reward reasonable valuation
-            if (s.epsGrowth != null) score += Math.min(Math.max(s.epsGrowth, -20), 40) * 0.8;
+
+            if (s.week52Low != null && s.week52High != null && s.week52High > s.week52Low) {
+                s.rangePosition = (s.price - s.week52Low) / (s.week52High - s.week52Low);
+                score += (1 - s.rangePosition) * 25; // lower in the range = more "cheap/dip" points, up to 25
+            }
+            if (s.momentum3m != null) {
+                score += Math.min(Math.max(s.momentum3m, -20), 30) * 0.6; // reward stocks recovering, cap extremes
+            }
+            if (s.roe != null) score += Math.min(s.roe, 40) * 1.0;
+            if (s.de != null) score += Math.max(0, (1.5 - s.de)) * 10;
+            if (s.pe != null && s.pe > 0) score += Math.max(0, (35 - s.pe)) * 0.8;
+            if (s.epsGrowth != null) score += Math.min(Math.max(s.epsGrowth, -20), 40) * 0.6;
             if (s.targetMean != null && s.price) {
-                const upside = ((s.targetMean - s.price) / s.price) * 100;
-                s.upsidePct = upside;
-                score += Math.min(Math.max(upside, -20), 40) * 1.3;              // analyst upside weighted highest
+                s.upsidePct = ((s.targetMean - s.price) / s.price) * 100;
+                score += Math.min(Math.max(s.upsidePct, -20), 40) * 1.2;
             }
             return score;
         }
 
         function isDip(s) {
             // "Dip" = trading in the lower third of its 52-week range → potentially undervalued zone
+            if (s.rangePosition != null) return s.rangePosition <= 0.35;
             if (s.week52Low == null || s.week52High == null || s.week52High === s.week52Low) return false;
-            const position = (s.price - s.week52Low) / (s.week52High - s.week52Low);
-            return position <= 0.35;
+            return (s.price - s.week52Low) / (s.week52High - s.week52Low) <= 0.35;
         }
 
         function fmtINR(n) {
@@ -441,12 +485,17 @@
             if (s.de != null) parts.push(`D/E ${s.de.toFixed(2)}`);
             if (s.pe != null) parts.push(`P/E ${s.pe.toFixed(1)}`);
             if (s.epsGrowth != null) parts.push(`EPS വളർച്ച ${s.epsGrowth.toFixed(1)}%`);
-            let line = parts.join(', ') + '.';
+            if (s.rangePosition != null) parts.push(`52-ആഴ്ച റേഞ്ചിൽ ${(s.rangePosition * 100).toFixed(0)}% നിലയിൽ`);
+            if (s.momentum3m != null) parts.push(`3-മാസ ചലനം ${s.momentum3m >= 0 ? '+' : ''}${s.momentum3m.toFixed(1)}%`);
+            let line = (parts.length ? parts.join(', ') : 'അടിസ്ഥാന ലൈവ് വില ഡാറ്റ') + '.';
             if (s.targetMean != null && s.upsidePct != null) {
                 line += ` അനലിസ്റ്റ് ടാർഗറ്റ് ${fmtINR(s.targetMean)} (${s.upsidePct >= 0 ? '+' : ''}${s.upsidePct.toFixed(1)}% സാധ്യത).`;
             }
             if (s.recommendation) {
                 line += ` അനലിസ്റ്റ് റേറ്റിംഗ്: ${s.recommendation.toUpperCase()}.`;
+            }
+            if (s.pe == null && s.roe == null) {
+                line += ` <span style="opacity:0.6;">(ഫണ്ടമെന്റൽ ഡാറ്റ ഈ സമയത്ത് ലഭ്യമായില്ല — വില/momentum അടിസ്ഥാനത്തിലുള്ള സ്കോർ.)</span>`;
             }
             return line;
         }
