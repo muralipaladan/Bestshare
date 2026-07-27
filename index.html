@@ -313,8 +313,8 @@
     (function() {
         "use strict";
 
-        // ---------- Candidate universe: large/mid-cap NSE stocks screened live ----------
-        // Sector-diverse list. Add/remove symbols here to widen or narrow the screener.
+        // ---------- Candidate universe: 15 high-quality large-cap NSE stocks (10 core + 5 additional, sector-diverse) ----------
+        // Kept small on purpose — fewer API calls = fewer proxy/rate-limit failures, faster load.
         const CANDIDATE_UNIVERSE = [
             { symbol: "RELIANCE",   name: "Reliance Industries",   sector: "Energy" },
             { symbol: "INFY",       name: "Infosys",                sector: "IT" },
@@ -327,20 +327,9 @@
             { symbol: "TITAN",      name: "Titan Company",          sector: "Consumer" },
             { symbol: "SUNPHARMA",  name: "Sun Pharma",             sector: "Pharma" },
             { symbol: "ICICIBANK",  name: "ICICI Bank",             sector: "Banking" },
-            { symbol: "AXISBANK",   name: "Axis Bank",              sector: "Banking" },
             { symbol: "BAJFINANCE", name: "Bajaj Finance",          sector: "Finance" },
-            { symbol: "WIPRO",      name: "Wipro",                  sector: "IT" },
-            { symbol: "TECHM",      name: "Tech Mahindra",          sector: "IT" },
             { symbol: "LT",         name: "Larsen & Toubro",        sector: "Infra" },
-            { symbol: "TATASTEEL",  name: "Tata Steel",             sector: "Metals" },
             { symbol: "TATAMOTORS", name: "Tata Motors",            sector: "Auto" },
-            { symbol: "M&M",        name: "Mahindra & Mahindra",    sector: "Auto" },
-            { symbol: "ULTRACEMCO", name: "UltraTech Cement",       sector: "Cement" },
-            { symbol: "NESTLEIND",  name: "Nestle India",           sector: "Consumer" },
-            { symbol: "DIVISLAB",   name: "Divi's Laboratories",    sector: "Pharma" },
-            { symbol: "CIPLA",      name: "Cipla",                  sector: "Pharma" },
-            { symbol: "COALINDIA",  name: "Coal India",             sector: "Mining" },
-            { symbol: "POWERGRID",  name: "Power Grid Corp",        sector: "Power" },
             { symbol: "BHARTIARTL", name: "Bharti Airtel",          sector: "Telecom" }
         ];
 
@@ -373,7 +362,36 @@
             throw lastErr || new Error('എല്ലാ പ്രോക്സികളും പരാജയപ്പെട്ടു');
         }
 
-        // ---------- Primary data source: chart endpoint (no crumb/cookie auth needed, works via CORS proxies) ----------
+        // ---------- Primary data source: NSE India's own quote API. No crumb system like Yahoo, but NSE's
+        // bot-protection sometimes blocks proxy requests that lack a prior session cookie. We "warm up" by
+        // hitting the homepage once through the same proxy before the real calls, which helps on proxies
+        // that reuse an outbound connection/cookie-jar per host. ----------
+        let nseWarmedUp = false;
+        async function warmUpNseSession() {
+            if (nseWarmedUp) return;
+            nseWarmedUp = true;
+            try {
+                await fetchWithProxyFallback('https://www.nseindia.com/api/marketStatus');
+            } catch (err) {
+                // best-effort only — proceed regardless
+            }
+        }
+
+        async function fetchNseQuote(symbol) {
+            const url = `https://www.nseindia.com/api/quote-equity?symbol=${encodeURIComponent(symbol)}`;
+            const data = await fetchWithProxyFallback(url);
+            const priceInfo = data?.priceInfo;
+            if (!priceInfo || !priceInfo.lastPrice) throw new Error('NSE വില ലഭ്യമല്ല');
+            return {
+                price: priceInfo.lastPrice,
+                prevClose: priceInfo.previousClose ?? null,
+                week52High: priceInfo.weekHighLow?.max ?? null,
+                week52Low: priceInfo.weekHighLow?.min ?? null,
+                momentum3m: null
+            };
+        }
+
+        // ---------- Fallback data source: Yahoo chart endpoint (may be crumb-blocked, tried only if NSE fails) ----------
         async function fetchChartData(symbol) {
             const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}.NS?interval=1d&range=1y`;
             const data = await fetchWithProxyFallback(url);
@@ -403,6 +421,15 @@
             return { price, prevClose, week52High, week52Low, momentum3m };
         }
 
+        // Tries NSE India first (primary), falls back to Yahoo chart if NSE fails for this symbol
+        async function fetchPriceData(symbol) {
+            try {
+                return await fetchNseQuote(symbol);
+            } catch (nseErr) {
+                return await fetchChartData(symbol);
+            }
+        }
+
         // ---------- Enrichment source: fundamentals (P/E, ROE, D/E, analyst target). Best-effort — Yahoo often
         // blocks this endpoint without a browser cookie/crumb, so failures here are silently tolerated. ----------
         async function fetchFundamentals(symbol) {
@@ -427,9 +454,9 @@
         // Fetches live price/range (required) + fundamentals (optional) for one NSE symbol
         async function fetchStockData(candidate) {
             const symbol = candidate.symbol;
-            const chart = await fetchChartData(symbol); // must succeed, or this stock is dropped
+            const priceData = await fetchPriceData(symbol); // must succeed (NSE, else Yahoo fallback), or this stock is dropped
             const fundamentals = await fetchFundamentals(symbol); // best-effort, degrades gracefully
-            return { symbol, name: candidate.name, sector: candidate.sector, ...chart, ...fundamentals };
+            return { symbol, name: candidate.name, sector: candidate.sector, ...priceData, ...fundamentals };
         }
 
         // Simple concurrency-limited batch runner so we don't hammer the free CORS proxies
@@ -552,6 +579,7 @@
             lastUpdatedEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + CANDIDATE_UNIVERSE.length + ' ഓഹരികൾ സ്ക്രീൻ ചെയ്യുന്നു...';
             grid.innerHTML = '<div style="opacity:0.6; padding: 1rem;"><i class="fas fa-spinner fa-spin"></i> ലൈവ് ഡാറ്റ ലോഡ് ചെയ്യുന്നു, ദയവായി കാത്തിരിക്കുക...</div>';
 
+            await warmUpNseSession();
             const results = await fetchAllInBatches(CANDIDATE_UNIVERSE, fetchStockData, 5);
 
             const ok = [];
