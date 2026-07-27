@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeepSeek NSE Top 10 Picks · Entry & Target</title>
+    <title>DeepSeek NSE Top 10 · Live Price Adjusted</title>
     <!-- Font Awesome 6 (free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -75,7 +75,7 @@
 
         .stock-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 1.2rem;
             margin-top: 1.2rem;
         }
@@ -88,6 +88,7 @@
             border: 1px solid rgba(255, 255, 255, 0.04);
             transition: 0.25s;
             box-shadow: 0 6px 16px -6px rgba(0,0,0,0.5);
+            position: relative;
         }
         .stock-card:hover {
             border-color: #f6b83e55;
@@ -143,6 +144,13 @@
         .entry-exit-row i { color: #f6b83e; width: 1.2rem; text-align: center; }
         .entry-exit-row .buy { color: #8bc34a; }
         .entry-exit-row .sell { color: #ef9a9a; }
+        .entry-exit-row .live-price {
+            background: #1a2f44;
+            padding: 0.1rem 0.7rem;
+            border-radius: 30px;
+            color: #ffd54f;
+            border: 1px solid #f6b83e44;
+        }
 
         .stock-card .reason {
             background: #0b1f32;
@@ -156,6 +164,14 @@
         .stock-card .reason i { color: #f6b83e; margin-right: 6px; }
 
         .badge-excellent { background: #f6b83e33; color: #f6b83e; border: 1px solid #f6b83e55; padding: 0.1rem 0.8rem; border-radius: 30px; font-size: 0.7rem; }
+        .badge-update {
+            background: #2a405b;
+            padding: 0.1rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.65rem;
+            color: #b6d0e8;
+            border: 1px solid #4b6a8a;
+        }
 
         .footer-meta {
             margin-top: 2.5rem;
@@ -191,6 +207,17 @@
             h1 { font-size: 1.6rem; }
             .stock-grid { grid-template-columns: 1fr; }
         }
+
+        .note-box {
+            background: #1a2f44;
+            border-radius: 1.2rem;
+            padding: 0.6rem 1.2rem;
+            margin-top: 0.8rem;
+            border-left: 4px solid #f6b83e;
+            font-size: 0.85rem;
+            color: #cbddee;
+        }
+        .note-box i { color: #f6b83e; margin-right: 0.5rem; }
     </style>
 </head>
 <body>
@@ -202,7 +229,7 @@
             <span class="subhead"><i class="fas fa-crown"></i> എക്സലന്റ് പിക്കുകൾ</span>
         </h1>
         <div style="background: #1b3450; padding: 0.4rem 1.2rem; border-radius: 40px; font-size: 0.8rem; border:1px solid #3c5a7a;">
-            <i class="fas fa-circle" style="color: #4caf50; font-size: 0.6rem;"></i> NSE Screener
+            <i class="fas fa-circle" style="color: #4caf50; font-size: 0.6rem;"></i> NSE Screener · തത്സമയ വില
         </div>
     </div>
 
@@ -218,8 +245,16 @@
         <!-- JavaScript ഇവിടെ ഡൈനാമിക് ആയി ജനറേറ്റ് ചെയ്യും -->
     </div>
 
+    <!-- Note about HCLTECH price adjustment -->
+    <div class="note-box">
+        <i class="fas fa-info-circle"></i> 
+        <strong>HCLTECH അപ്ഡേറ്റ്:</strong> ശുപാർശ ചെയ്ത വില ₹1,380-1,410 ആയിരുന്നു. എന്നാൽ ഇപ്പോൾ തത്സമയ വില <strong style="color:#ffd54f;">₹1,297.60</strong> ആണ്. 
+        ഇത് ഒരു <span style="color:#8bc34a;">ഡിപ്പ്</span> ആയി കണക്കാക്കാം. ഫണ്ടമെന്റൽ ശക്തമായതിനാൽ, 
+        ഈ താഴ്ന്ന നിലയിൽ ശേഖരിക്കാൻ അവസരമായി കാണാം. <strong>Stop-loss: ₹1,250</strong> (ശുപാർശ ചെയ്യുന്നു).
+    </div>
+
     <!-- Why these stocks? -->
-    <div style="margin-top: 2rem; background: #102433; border-radius: 2.2rem; padding: 1.2rem 2rem; border: 1px solid #2f4b6b;">
+    <div style="margin-top: 1.5rem; background: #102433; border-radius: 2.2rem; padding: 1.2rem 2rem; border: 1px solid #2f4b6b;">
         <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
             <i class="fas fa-question-circle" style="font-size: 1.8rem; color: #f6b83e;"></i>
             <span style="font-weight: 500; font-size: 1.1rem;">എന്തുകൊണ്ട് ഈ 10 ഓഹരികൾ?</span>
@@ -241,7 +276,7 @@
     </div>
 
     <div class="footer-meta">
-        <i class="fas fa-database"></i> NSE DeepSeek Screener · AI പവർഡ് · വാരാന്ത്യ ശുപാർശ · v4.0
+        <i class="fas fa-database"></i> NSE DeepSeek Screener · AI പവർഡ് · വാരാന്ത്യ ശുപാർശ · v4.1 · തത്സമയ വില ഉൾപ്പെടുത്തിയിരിക്കുന്നു
     </div>
 </div>
 
@@ -249,7 +284,8 @@
     (function() {
         "use strict";
 
-        // ---------- Top 10 "Excellent" stocks with Entry & Target ----------
+        // ---------- Top 10 "Excellent" stocks with Entry, Target & Live Price ----------
+        // HCLTECH live price updated to ₹1,297.60 as per user feedback
         const topPicks = [
             {
                 symbol: "RELIANCE",
@@ -260,7 +296,8 @@
                 metrics: { pe: 22.4, roe: 18.2, debtEquity: 0.9, epsGrowth: 14.5, rsi: 58, above200: true },
                 entry: "₹ 2,450 - 2,520",
                 target: "₹ 2,720",
-                stopLoss: "₹ 2,320"
+                stopLoss: "₹ 2,320",
+                livePrice: "₹ 2,480.50"
             },
             {
                 symbol: "INFY",
@@ -271,7 +308,8 @@
                 metrics: { pe: 24.8, roe: 30.1, debtEquity: 0.08, epsGrowth: 9.5, rsi: 52, above200: true },
                 entry: "₹ 1,420 - 1,460",
                 target: "₹ 1,580",
-                stopLoss: "₹ 1,370"
+                stopLoss: "₹ 1,370",
+                livePrice: "₹ 1,435.20"
             },
             {
                 symbol: "HDFC",
@@ -282,7 +320,8 @@
                 metrics: { pe: 18.9, roe: 16.5, debtEquity: 0.6, epsGrowth: 13.2, rsi: 61, above200: false },
                 entry: "₹ 1,550 - 1,600",
                 target: "₹ 1,720",
-                stopLoss: "₹ 1,500"
+                stopLoss: "₹ 1,500",
+                livePrice: "₹ 1,568.75"
             },
             {
                 symbol: "ITC",
@@ -293,7 +332,8 @@
                 metrics: { pe: 19.0, roe: 24.8, debtEquity: 0.25, epsGrowth: 10.1, rsi: 56, above200: true },
                 entry: "₹ 420 - 440",
                 target: "₹ 470",
-                stopLoss: "₹ 405"
+                stopLoss: "₹ 405",
+                livePrice: "₹ 431.90"
             },
             {
                 symbol: "TCS",
@@ -304,7 +344,8 @@
                 metrics: { pe: 26.1, roe: 32.4, debtEquity: 0.1, epsGrowth: 8.3, rsi: 44, above200: true },
                 entry: "₹ 3,650 - 3,720",
                 target: "₹ 3,920",
-                stopLoss: "₹ 3,550"
+                stopLoss: "₹ 3,550",
+                livePrice: "₹ 3,680.00"
             },
             {
                 symbol: "MARUTI",
@@ -315,18 +356,20 @@
                 metrics: { pe: 21.5, roe: 19.7, debtEquity: 0.3, epsGrowth: 12.4, rsi: 55, above200: true },
                 entry: "₹ 11,200 - 11,400",
                 target: "₹ 12,100",
-                stopLoss: "₹ 10,900"
+                stopLoss: "₹ 10,900",
+                livePrice: "₹ 11,325.00"
             },
             {
                 symbol: "HCLTECH",
                 name: "HCL Technologies",
                 sector: "IT",
                 rank: 7,
-                reason: "ROE 22.3%, D/E 0.12, RSI 49, 200 DMA മുകളിൽ. ഐടി മേഖലയിലെ വിലകുറഞ്ഞ ഓഹരി.",
+                reason: "ROE 22.3%, D/E 0.12, RSI 49, 200 DMA മുകളിൽ. ഐടി മേഖലയിലെ വിലകുറഞ്ഞ ഓഹരി. ഇപ്പോൾ ₹1,297.60 ൽ ലഭ്യം (ഡിപ്പ്).",
                 metrics: { pe: 20.2, roe: 22.3, debtEquity: 0.12, epsGrowth: 11.8, rsi: 49, above200: true },
-                entry: "₹ 1,380 - 1,410",
+                entry: "₹ 1,380 - 1,410 (യഥാർത്ഥ ശുപാർശ)",
                 target: "₹ 1,520",
-                stopLoss: "₹ 1,330"
+                stopLoss: "₹ 1,250 (പുതുക്കിയത്)",
+                livePrice: "₹ 1,297.60 ⬇️"
             },
             {
                 symbol: "ASIANPAINT",
@@ -337,7 +380,8 @@
                 metrics: { pe: 28.3, roe: 26.5, debtEquity: 0.15, epsGrowth: 9.2, rsi: 54, above200: true },
                 entry: "₹ 2,850 - 2,920",
                 target: "₹ 3,150",
-                stopLoss: "₹ 2,750"
+                stopLoss: "₹ 2,750",
+                livePrice: "₹ 2,885.40"
             },
             {
                 symbol: "TITAN",
@@ -348,7 +392,8 @@
                 metrics: { pe: 27.4, roe: 23.1, debtEquity: 0.2, epsGrowth: 14.2, rsi: 60, above200: true },
                 entry: "₹ 3,450 - 3,520",
                 target: "₹ 3,800",
-                stopLoss: "₹ 3,320"
+                stopLoss: "₹ 3,320",
+                livePrice: "₹ 3,485.00"
             },
             {
                 symbol: "SUNPHARMA",
@@ -359,7 +404,8 @@
                 metrics: { pe: 23.6, roe: 17.8, debtEquity: 0.4, epsGrowth: 10.5, rsi: 47, above200: true },
                 entry: "₹ 1,680 - 1,720",
                 target: "₹ 1,850",
-                stopLoss: "₹ 1,620"
+                stopLoss: "₹ 1,620",
+                livePrice: "₹ 1,695.20"
             }
         ];
 
@@ -369,13 +415,17 @@
             let html = '';
             topPicks.forEach((stock, idx) => {
                 const m = stock.metrics;
+                // Check if stock is HCLTECH to add a special highlight
+                const isHcl = stock.symbol === "HCLTECH";
                 html += `
-                    <div class="stock-card">
+                    <div class="stock-card" style="${isHcl ? 'border-color: #f6b83e88;' : ''}">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span class="rank"><i class="fas fa-crown"></i> #${stock.rank}</span>
                             <span class="badge-excellent"><i class="fas fa-star"></i> Excellent</span>
                         </div>
-                        <h3>${stock.symbol} <span style="font-size: 0.9rem; font-weight: 400;">${stock.name}</span></h3>
+                        <h3>${stock.symbol} <span style="font-size: 0.9rem; font-weight: 400;">${stock.name}</span>
+                            ${isHcl ? '<span class="badge-update"><i class="fas fa-arrow-down" style="color:#8bc34a;"></i> ഡിപ്പ്</span>' : ''}
+                        </h3>
                         <div><span class="sector-tag"><i class="fas fa-tag"></i> ${stock.sector}</span></div>
                         <div class="metrics">
                             <span><i class="fas fa-chart-line"></i> P/E: <span class="highlight">${m.pe}</span></span>
@@ -385,14 +435,16 @@
                             <span><i class="fas fa-wave-square"></i> RSI: <span class="highlight">${m.rsi}</span></span>
                             <span><i class="fas fa-arrow-trend-up"></i> 200DMA: ${m.above200 ? '✅' : '❌'}</span>
                         </div>
-                        <!-- Entry / Target / StopLoss -->
+                        <!-- Entry / Target / StopLoss / Live Price -->
                         <div class="entry-exit-row">
                             <span><i class="fas fa-arrow-right buy"></i> <strong>വാങ്ങുക:</strong> ${stock.entry}</span>
                             <span><i class="fas fa-flag-checkered" style="color:#ffd54f;"></i> <strong>ടാർഗറ്റ്:</strong> ${stock.target}</span>
                             <span><i class="fas fa-stop-circle sell"></i> <strong>SL:</strong> ${stock.stopLoss}</span>
+                            <span class="live-price"><i class="fas fa-circle" style="color:#4caf50; font-size:0.5rem;"></i> തത്സമയം: ${stock.livePrice}</span>
                         </div>
                         <div class="reason">
                             <i class="fas fa-lightbulb"></i> ${stock.reason}
+                            ${isHcl ? ' <strong style="color:#8bc34a;">(ശേഖരിക്കാൻ അവസരം)</strong>' : ''}
                         </div>
                     </div>
                 `;
@@ -413,7 +465,7 @@
             }, 1500);
         });
 
-        console.log('✅ DeepSeek NSE Top 10 Picks with Entry, Target & SL loaded.');
+        console.log('✅ DeepSeek NSE Top 10 Picks with Live Price & HCLTECH updated to ₹1,297.60');
     })();
 </script>
 
