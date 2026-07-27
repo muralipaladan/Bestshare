@@ -218,6 +218,29 @@
             color: #cbddee;
         }
         .note-box i { color: #f6b83e; margin-right: 0.5rem; }
+
+        .disclaimer {
+            background: #2a1a1a;
+            border-left: 4px solid #ef5350;
+            border-radius: 1.2rem;
+            padding: 0.6rem 1.2rem;
+            margin-top: 1rem;
+            font-size: 0.78rem;
+            color: #f0c9c9;
+        }
+        .disclaimer i { color: #ef5350; margin-right: 0.5rem; }
+
+        .live-price.stale { color: #b0bec5 !important; border-color: #4b6a8a44 !important; }
+        .live-price.loading { color: #90a4ae !important; }
+        .price-change { font-size: 0.7rem; margin-left: 0.4rem; }
+        .price-change.up { color: #8bc34a; }
+        .price-change.down { color: #ef9a9a; }
+
+        .last-updated {
+            font-size: 0.72rem;
+            opacity: 0.6;
+            margin-top: 0.3rem;
+        }
     </style>
 </head>
 <body>
@@ -238,6 +261,12 @@
         <span style="font-weight: 500;"><i class="fas fa-list"></i> ഈ ആഴ്ചത്തെ മികച്ച 10 ഓഹരികൾ</span>
         <span><i class="fas fa-calendar-week"></i> 27 ജൂലൈ 2026 · ആഴ്ച 31</span>
         <button class="btn btn-secondary" id="refreshPicks"><i class="fas fa-sync-alt"></i> പുതുക്കുക</button>
+    </div>
+    <div class="last-updated" id="lastUpdated"><i class="fas fa-clock"></i> വില ലോഡ് ചെയ്യുന്നു...</div>
+
+    <div class="disclaimer">
+        <i class="fas fa-triangle-exclamation"></i>
+        <strong>മുന്നറിയിപ്പ്:</strong> ഇത് നിക്ഷേപ ഉപദേശമല്ല (Not Investment Advice). Entry/Target/Stop-loss ഇവ ജനറൽ അനാലിസിസ് മാത്രമാണ്, ഗ്യാരണ്ടിയല്ല. NSE-ൽ നിക്ഷേപിക്കുന്നതിന് മുൻപ് സ്വന്തം റിസർച്ച് നടത്തുകയോ SEBI-രജിസ്റ്റർ ചെയ്ത നിക്ഷേപ ഉപദേഷ്ടാവിനെ സമീപിക്കുകയോ ചെയ്യുക.
     </div>
 
     <!-- Stock Grid -->
@@ -410,12 +439,44 @@
         ];
 
         const grid = document.getElementById('stockGrid');
+        const lastUpdatedEl = document.getElementById('lastUpdated');
+
+        // ---------- CORS proxy fallback chain (same pattern used across other tools) ----------
+        const CORS_PROXIES = [
+            url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+            url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+        ];
+
+        async function fetchWithProxyFallback(targetUrl) {
+            let lastErr;
+            for (const buildProxyUrl of CORS_PROXIES) {
+                try {
+                    const res = await fetch(buildProxyUrl(targetUrl), { cache: 'no-store' });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return await res.json();
+                } catch (err) {
+                    lastErr = err;
+                }
+            }
+            throw lastErr || new Error('എല്ലാ പ്രോക്സികളും പരാജയപ്പെട്ടു');
+        }
+
+        // Yahoo Finance chart endpoint gives latest price + previous close for NSE symbols (SYMBOL.NS)
+        async function fetchLivePrice(symbol) {
+            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}.NS?interval=1d&range=1d`;
+            const data = await fetchWithProxyFallback(yahooUrl);
+            const result = data?.chart?.result?.[0];
+            if (!result) throw new Error('ഡാറ്റ ലഭ്യമല്ല');
+            const price = result.meta.regularMarketPrice;
+            const prevClose = result.meta.previousClose ?? result.meta.chartPreviousClose;
+            return { price, prevClose };
+        }
 
         function renderPicks() {
             let html = '';
             topPicks.forEach((stock, idx) => {
                 const m = stock.metrics;
-                // Check if stock is HCLTECH to add a special highlight
                 const isHcl = stock.symbol === "HCLTECH";
                 html += `
                     <div class="stock-card" style="${isHcl ? 'border-color: #f6b83e88;' : ''}">
@@ -440,7 +501,7 @@
                             <span><i class="fas fa-arrow-right buy"></i> <strong>വാങ്ങുക:</strong> ${stock.entry}</span>
                             <span><i class="fas fa-flag-checkered" style="color:#ffd54f;"></i> <strong>ടാർഗറ്റ്:</strong> ${stock.target}</span>
                             <span><i class="fas fa-stop-circle sell"></i> <strong>SL:</strong> ${stock.stopLoss}</span>
-                            <span class="live-price"><i class="fas fa-circle" style="color:#4caf50; font-size:0.5rem;"></i> തത്സമയം: ${stock.livePrice}</span>
+                            <span class="live-price loading" id="live-${stock.symbol}"><i class="fas fa-circle" style="color:#90a4ae; font-size:0.5rem;"></i> ലോഡ് ചെയ്യുന്നു...</span>
                         </div>
                         <div class="reason">
                             <i class="fas fa-lightbulb"></i> ${stock.reason}
@@ -452,20 +513,64 @@
             grid.innerHTML = html;
         }
 
-        // initial render
+        async function loadLivePrices() {
+            lastUpdatedEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> തത്സമയ വില ലോഡ് ചെയ്യുന്നു...';
+
+            const results = await Promise.allSettled(
+                topPicks.map(stock => fetchLivePrice(stock.symbol))
+            );
+
+            let successCount = 0;
+            results.forEach((res, idx) => {
+                const stock = topPicks[idx];
+                const el = document.getElementById(`live-${stock.symbol}`);
+                if (!el) return;
+
+                if (res.status === 'fulfilled' && res.value.price) {
+                    successCount++;
+                    const { price, prevClose } = res.value;
+                    const change = prevClose ? (((price - prevClose) / prevClose) * 100) : null;
+                    const changeHtml = change !== null
+                        ? `<span class="price-change ${change >= 0 ? 'up' : 'down'}">${change >= 0 ? '▲' : '▼'} ${Math.abs(change).toFixed(2)}%</span>`
+                        : '';
+                    el.classList.remove('loading');
+                    el.innerHTML = `<i class="fas fa-circle" style="color:#4caf50; font-size:0.5rem;"></i> തത്സമയം: ₹ ${price.toFixed(2)} ${changeHtml}`;
+                } else {
+                    // Fetch failed — fall back to last-known static price, clearly marked as NOT live
+                    el.classList.remove('loading');
+                    el.classList.add('stale');
+                    el.innerHTML = `<i class="fas fa-triangle-exclamation" style="color:#ef9a9a;"></i> ${stock.livePrice} <span style="opacity:0.6;">(പഴയത്, ലൈവ് അല്ല)</span>`;
+                }
+            });
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            if (successCount === topPicks.length) {
+                lastUpdatedEl.innerHTML = `<i class="fas fa-check-circle" style="color:#8bc34a;"></i> അവസാനം അപ്ഡേറ്റ്: ${timeStr} · എല്ലാ വിലയും ലൈവ്`;
+            } else if (successCount > 0) {
+                lastUpdatedEl.innerHTML = `<i class="fas fa-triangle-exclamation" style="color:#f6b83e;"></i> അവസാനം അപ്ഡേറ്റ്: ${timeStr} · ${successCount}/${topPicks.length} ലൈവ്, ബാക്കി പഴയ വില`;
+            } else {
+                lastUpdatedEl.innerHTML = `<i class="fas fa-circle-xmark" style="color:#ef9a9a;"></i> ലൈവ് വില ലഭ്യമായില്ല (network/proxy പ്രശ്നം) · പഴയ വില കാണിക്കുന്നു`;
+            }
+        }
+
+        // initial render + live fetch
         renderPicks();
+        loadLivePrices();
 
         // refresh button
-        document.getElementById('refreshPicks').addEventListener('click', function(e) {
+        document.getElementById('refreshPicks').addEventListener('click', async function(e) {
             e.preventDefault();
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> പുതുക്കുന്നു...';
             renderPicks();
+            await loadLivePrices();
+            this.disabled = false;
             this.innerHTML = '<i class="fas fa-check"></i> പുതുക്കി';
             setTimeout(() => {
                 this.innerHTML = '<i class="fas fa-sync-alt"></i> പുതുക്കുക';
             }, 1500);
         });
-
-        console.log('✅ DeepSeek NSE Top 10 Picks with Live Price & HCLTECH updated to ₹1,297.60');
     })();
 </script>
 
