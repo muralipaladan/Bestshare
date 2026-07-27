@@ -1,21 +1,16 @@
-<!DOCTYPE html>
+html_content = """<!DOCTYPE html>
 <html lang="ml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeepSeek NSE Top 10 · Live Price Adjusted</title>
+    <title>DeepSeek NSE Top Picks · Advanced Live Screener</title>
     <!-- Font Awesome 6 (free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* ============================================================
-           മലയാളത്തിൽ വിവരിക്കുന്ന style.css 
+           മലയാളത്തിൽ വിവരിക്കുന്ന style.css (Updated for Pure Live Data)
            ============================================================ */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: linear-gradient(145deg, #0b1a2e 0%, #1a2f44 100%);
             font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
@@ -26,328 +21,114 @@
             align-items: center;
             color: #e8f0fe;
         }
-
         .card {
-            max-width: 1400px;
-            width: 100%;
+            max-width: 1400px; width: 100%;
             background: rgba(22, 40, 62, 0.85);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border-radius: 3rem;
-            padding: 2rem 2.5rem;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border-radius: 3rem; padding: 2rem 2.5rem;
             box-shadow: 0 25px 50px -8px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.04);
         }
-
-        h1 {
-            font-size: 2.2rem;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-        }
+        h1 { font-size: 2.2rem; font-weight: 600; letter-spacing: -0.5px; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
         h1 i { color: #f6b83e; font-size: 2rem; filter: drop-shadow(0 0 6px rgba(246, 184, 62, 0.3)); }
         .subhead {
-            font-size: 1rem;
-            opacity: 0.7;
-            margin-left: 0.5rem;
-            font-weight: 400;
-            background: rgba(255, 255, 255, 0.04);
-            padding: 0.2rem 1rem;
-            border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.03);
+            font-size: 1rem; opacity: 0.7; margin-left: 0.5rem; font-weight: 400;
+            background: rgba(255, 255, 255, 0.04); padding: 0.2rem 1rem; border-radius: 40px; border: 1px solid rgba(255, 255, 255, 0.03);
         }
-
         .top-picks-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            margin: 1.5rem 0 1.2rem 0;
-            background: #102433;
-            padding: 1rem 1.8rem;
-            border-radius: 3rem;
-            border: 1px solid #2f4b6b;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+            margin: 1.5rem 0 1.2rem 0; background: #102433; padding: 1rem 1.8rem;
+            border-radius: 3rem; border: 1px solid #2f4b6b;
         }
         .top-picks-header i { color: #f6b83e; margin-right: 0.5rem; }
-
-        .stock-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 1.2rem;
-            margin-top: 1.2rem;
-        }
-
+        .stock-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.2rem; margin-top: 1.2rem; }
+        
         .stock-card {
-            background: rgba(12, 27, 45, 0.75);
-            backdrop-filter: blur(4px);
-            border-radius: 2rem;
-            padding: 1.2rem 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            transition: 0.25s;
-            box-shadow: 0 6px 16px -6px rgba(0,0,0,0.5);
-            position: relative;
+            background: rgba(12, 27, 45, 0.75); backdrop-filter: blur(4px);
+            border-radius: 2rem; padding: 1.2rem 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.04); transition: 0.25s;
+            box-shadow: 0 6px 16px -6px rgba(0,0,0,0.5); position: relative;
         }
-        .stock-card:hover {
-            border-color: #f6b83e55;
-            transform: translateY(-4px);
-            box-shadow: 0 12px 28px -8px rgba(0,0,0,0.7);
-        }
+        .stock-card:hover { border-color: #f6b83e55; transform: translateY(-4px); box-shadow: 0 12px 28px -8px rgba(0,0,0,0.7); }
         .stock-card .rank {
-            font-size: 0.7rem;
-            background: #f6b83e22;
-            padding: 0.1rem 0.8rem;
-            border-radius: 30px;
-            color: #f6b83e;
-            border: 1px solid #f6b83e33;
-            display: inline-block;
+            font-size: 0.7rem; background: #f6b83e22; padding: 0.1rem 0.8rem;
+            border-radius: 30px; color: #f6b83e; border: 1px solid #f6b83e33; display: inline-block;
         }
-        .stock-card h3 {
-            font-size: 1.3rem;
-            margin: 0.4rem 0 0.2rem 0;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-        }
-        .stock-card h3 i { color: #f6b83e; font-size: 1rem; }
-        .stock-card .sector-tag {
-            font-size: 0.7rem;
-            background: #1f3b57;
-            padding: 0.1rem 0.9rem;
-            border-radius: 30px;
-            color: #b6d0e8;
-        }
-        .stock-card .metrics {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem 1rem;
-            margin: 0.6rem 0 0.4rem 0;
-            font-size: 0.82rem;
-        }
-        .stock-card .metrics span { opacity: 0.8; }
-        .stock-card .metrics .highlight { color: #f6b83e; font-weight: 500; }
-
+        .stock-card h3 { font-size: 1.3rem; margin: 0.4rem 0 0.2rem 0; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+        .stock-card .sector-tag { font-size: 0.7rem; background: #1f3b57; padding: 0.1rem 0.9rem; border-radius: 30px; color: #b6d0e8; }
+        .stock-card .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1rem; margin: 0.8rem 0; font-size: 0.82rem; }
+        .stock-card .metrics span { opacity: 0.85; }
+        .stock-card .metrics .highlight { color: #f6b83e; font-weight: 600; }
+        
         .entry-exit-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem 1.2rem;
-            background: #0b1f32;
-            padding: 0.5rem 0.8rem;
-            border-radius: 1.4rem;
-            margin: 0.5rem 0 0.4rem 0;
-            border: 1px solid #2f4b6b;
-            font-size: 0.8rem;
+            display: flex; flex-wrap: wrap; gap: 0.6rem 1.2rem; background: #0b1f32;
+            padding: 0.7rem 1rem; border-radius: 1.4rem; margin: 0.5rem 0; border: 1px solid #2f4b6b; font-size: 0.85rem;
         }
-        .entry-exit-row i { color: #f6b83e; width: 1.2rem; text-align: center; }
-        .entry-exit-row .buy { color: #8bc34a; }
-        .entry-exit-row .sell { color: #ef9a9a; }
-        .entry-exit-row .live-price {
-            background: #1a2f44;
-            padding: 0.1rem 0.7rem;
-            border-radius: 30px;
-            color: #ffd54f;
-            border: 1px solid #f6b83e44;
-        }
-
+        .entry-exit-row i { width: 1.2rem; text-align: center; }
+        .buy { color: #8bc34a; } .sell { color: #ef9a9a; } .target { color: #ffd54f; }
+        .live-price { background: #1a2f44; padding: 0.2rem 0.8rem; border-radius: 30px; color: #fff; border: 1px solid #f6b83e44; }
+        
         .stock-card .reason {
-            background: #0b1f32;
-            padding: 0.5rem 0.8rem;
-            border-radius: 1.2rem;
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
-            border-left: 3px solid #f6b83e;
-            color: #b8d0e5;
+            background: #102433; padding: 0.6rem 1rem; border-radius: 1.2rem;
+            font-size: 0.8rem; margin-top: 0.5rem; border-left: 3px solid #f6b83e; color: #b8d0e5; line-height: 1.4;
         }
-        .stock-card .reason i { color: #f6b83e; margin-right: 6px; }
-
         .badge-excellent { background: #f6b83e33; color: #f6b83e; border: 1px solid #f6b83e55; padding: 0.1rem 0.8rem; border-radius: 30px; font-size: 0.7rem; }
-        .badge-update {
-            background: #2a405b;
-            padding: 0.1rem 0.8rem;
-            border-radius: 30px;
-            font-size: 0.65rem;
-            color: #b6d0e8;
-            border: 1px solid #4b6a8a;
-        }
-
-        .footer-meta {
-            margin-top: 2.5rem;
-            text-align: center;
-            opacity: 0.3;
-            font-size: 0.8rem;
-            border-top: 1px solid #2a405b;
-            padding-top: 1.8rem;
-        }
+        .badge-dma { background: #4caf5033; color: #4caf50; border: 1px solid #4caf5055; padding: 0.1rem 0.6rem; border-radius: 30px; font-size: 0.65rem; }
+        .badge-update { background: #2a405b; padding: 0.1rem 0.8rem; border-radius: 30px; font-size: 0.65rem; color: #b6d0e8; border: 1px solid #4b6a8a; }
 
         .btn {
-            background: #f6b83e;
-            border: none;
-            padding: 0.6rem 1.6rem;
-            border-radius: 60px;
-            font-weight: 600;
-            color: #0b1a2e;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
-            cursor: pointer;
-            transition: 0.15s;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(246, 184, 62, 0.3);
-            border: 1px solid #f6b83e55;
+            background: #f6b83e; border: none; padding: 0.6rem 1.6rem; border-radius: 60px;
+            font-weight: 600; color: #0b1a2e; display: inline-flex; align-items: center; gap: 0.6rem;
+            cursor: pointer; transition: 0.15s; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(246, 184, 62, 0.3); border: 1px solid #f6b83e55;
         }
         .btn:hover { background: #ffce6e; transform: scale(1.02); box-shadow: 0 8px 18px rgba(246, 184, 62, 0.4); }
         .btn-secondary { background: #2a405b; color: #e8f0fe; box-shadow: none; border: 1px solid #4b6a8a; }
         .btn-secondary:hover { background: #3a5a7a; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
-        @media (max-width: 600px) {
-            .card { padding: 1.2rem; }
-            h1 { font-size: 1.6rem; }
-            .stock-grid { grid-template-columns: 1fr; }
-        }
-
-        .note-box {
-            background: #1a2f44;
-            border-radius: 1.2rem;
-            padding: 0.6rem 1.2rem;
-            margin-top: 0.8rem;
-            border-left: 4px solid #f6b83e;
-            font-size: 0.85rem;
-            color: #cbddee;
-        }
-        .note-box i { color: #f6b83e; margin-right: 0.5rem; }
-
-        .disclaimer {
-            background: #2a1a1a;
-            border-left: 4px solid #ef5350;
-            border-radius: 1.2rem;
-            padding: 0.6rem 1.2rem;
-            margin-top: 1rem;
-            font-size: 0.78rem;
-            color: #f0c9c9;
-        }
-        .disclaimer i { color: #ef5350; margin-right: 0.5rem; }
-
-        .live-price.stale { color: #b0bec5 !important; border-color: #4b6a8a44 !important; }
-        .live-price.loading { color: #90a4ae !important; }
-        .price-change { font-size: 0.7rem; margin-left: 0.4rem; }
-        .price-change.up { color: #8bc34a; }
-        .price-change.down { color: #ef9a9a; }
-
-        .last-updated {
-            font-size: 0.72rem;
-            opacity: 0.6;
-            margin-top: 0.3rem;
-        }
-
-        .paste-panel {
-            margin-top: 0.8rem;
-            background: #102433;
-            border-radius: 1.5rem;
-            padding: 1rem 1.4rem;
-            border: 1px solid #2f4b6b;
-        }
-        .paste-panel summary { cursor: pointer; font-weight: 500; font-size: 0.9rem; }
-        .paste-panel summary i { color: #f6b83e; margin-right: 0.4rem; }
-        .paste-panel textarea {
-            width: 100%;
-            margin-top: 0.7rem;
-            background: #0b1f32;
-            border: 1px solid #2f4b6b;
-            border-radius: 0.8rem;
-            color: #e8f0fe;
-            padding: 0.6rem;
-            font-family: monospace;
-            font-size: 0.78rem;
-            min-height: 110px;
-            resize: vertical;
-        }
-        .paste-panel .hint { font-size: 0.72rem; opacity: 0.6; margin-top: 0.4rem; }
-        .paste-panel .actions { display: flex; gap: 0.6rem; margin-top: 0.7rem; flex-wrap: wrap; align-items: center; }
-        .paste-status { font-size: 0.78rem; }
-        .paste-status.err { color: #ef9a9a; }
-        .paste-status.ok { color: #8bc34a; }
+        .disclaimer { background: #2a1a1a; border-left: 4px solid #ef5350; border-radius: 1.2rem; padding: 0.8rem 1.2rem; margin-top: 1rem; font-size: 0.8rem; color: #f0c9c9; }
+        .price-change { font-size: 0.75rem; margin-left: 0.4rem; font-weight: bold; }
+        .price-change.up { color: #8bc34a; } .price-change.down { color: #ef9a9a; }
+        .last-updated { font-size: 0.75rem; opacity: 0.7; margin-top: 0.4rem; }
+        
+        @media (max-width: 600px) { .card { padding: 1.2rem; } h1 { font-size: 1.6rem; } .stock-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 <div class="card">
-
     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
         <h1>
-            <i class="fas fa-robot"></i> Deep<span style="color:#f6b83e;">Seek</span> · NSE Top 10
-            <span class="subhead"><i class="fas fa-crown"></i> എക്സലന്റ് പിക്കുകൾ</span>
+            <i class="fas fa-robot"></i> Advanced <span style="color:#f6b83e;">Live</span> Screener
+            <span class="subhead"><i class="fas fa-bolt"></i> ഫുൾ ഓട്ടോമാറ്റിക് എൻജിൻ</span>
         </h1>
-        <div style="background: #1b3450; padding: 0.4rem 1.2rem; border-radius: 40px; font-size: 0.8rem; border:1px solid #3c5a7a;">
-            <i class="fas fa-circle" style="color: #4caf50; font-size: 0.6rem;"></i> NSE Screener · തത്സമയ വില
+        <div style="background: #1b3450; padding: 0.4rem 1.2rem; border-radius: 40px; font-size: 0.8rem; border:1px solid #3c5a7a; margin-top: 5px;">
+            <i class="fas fa-circle" style="color: #4caf50; font-size: 0.6rem;"></i> Google Sheet മുക്തം · നേരിട്ടുള്ള ലൈവ് ഡാറ്റ
         </div>
     </div>
 
-    <!-- Top Picks Header -->
     <div class="top-picks-header">
-        <span style="font-weight: 500;"><i class="fas fa-list"></i> ഈ ആഴ്ചത്തെ മികച്ച 10 ഓഹരികൾ</span>
-        <span><i class="fas fa-calendar-week"></i> 27 ജൂലൈ 2026 · ആഴ്ച 31</span>
-        <button class="btn btn-secondary" id="refreshPicks"><i class="fas fa-sync-alt"></i> പുതുക്കുക</button>
+        <span style="font-weight: 500;"><i class="fas fa-list"></i> മാർക്കറ്റിലെ മികച്ച അവസരങ്ങൾ</span>
+        <button class="btn btn-secondary" id="refreshPicks"><i class="fas fa-sync-alt"></i> വീണ്ടും സ്കാൻ ചെയ്യുക</button>
     </div>
-    <div class="last-updated" id="lastUpdated"><i class="fas fa-clock"></i> വില ലോഡ് ചെയ്യുന്നു...</div>
+    <div class="last-updated" id="lastUpdated"><i class="fas fa-clock"></i> ഡാറ്റ അനലൈസ് ചെയ്യുന്നു... ദയവായി കാത്തിരിക്കുക.</div>
 
     <div class="disclaimer">
         <i class="fas fa-triangle-exclamation"></i>
-        <strong>മുന്നറിയിപ്പ്:</strong> ഇത് നിക്ഷേപ ഉപദേശമല്ല (Not Investment Advice). Entry/Target/Stop-loss ഇവ ജനറൽ അനാലിസിസ് മാത്രമാണ്, ഗ്യാരണ്ടിയല്ല. NSE-ൽ നിക്ഷേപിക്കുന്നതിന് മുൻപ് സ്വന്തം റിസർച്ച് നടത്തുകയോ SEBI-രജിസ്റ്റർ ചെയ്ത നിക്ഷേപ ഉപദേഷ്ടാവിനെ സമീപിക്കുകയോ ചെയ്യുക.
+        <strong>മുന്നറിയിപ്പ്:</strong> ഇത് ഓട്ടോമേറ്റഡ് ടെക്നിക്കൽ/ഫണ്ടമെന്റൽ അനാലിസിസ് മാത്രമാണ് (Not Investment Advice). Entry/Target/Stop-loss എന്നിവ വിദ്യാഭ്യാസ ആവശ്യങ്ങൾക്ക് മാത്രമുള്ളതാണ്. സ്വന്തമായി റിസർച്ച് നടത്തുക.
     </div>
 
-    <details class="paste-panel" id="pastePanel">
-        <summary><i class="fas fa-table"></i> Google Sheet (GOOGLEFINANCE) ഡാറ്റ Paste ചെയ്യുക</summary>
-        <div class="hint">
-            CSV format, ഒരു വരിയിൽ ഒരു stock: <code>symbol,price,prevClose,week52High,week52Low,pe,roe,de,epsGrowth</code><br>
-            ഉദാ: <code>RELIANCE,2480.5,2465,3025,2220,22.4,18.2,0.9,14.5</code> · pe/roe/de/epsGrowth ഒഴിവാക്കാം (ശൂന്യമായി വിടുക)
-        </div>
-        <textarea id="sheetDataInput" placeholder="symbol,price,prevClose,week52High,week52Low,pe,roe,de,epsGrowth&#10;RELIANCE,2480.5,2465,3025,2220,22.4,18.2,0.9,14.5&#10;INFY,1435.2,1420,1850,1290,,,,"></textarea>
-        <div class="actions">
-            <button class="btn" id="analyseSheetData"><i class="fas fa-magnifying-glass-chart"></i> Analyse ചെയ്യുക</button>
-            <button class="btn btn-secondary" id="clearSheetData"><i class="fas fa-broom"></i> മായ്ക്കുക, ലൈവ് ഡാറ്റയിലേക്ക്</button>
-            <span class="paste-status" id="pasteStatus"></span>
-        </div>
-    </details>
+    <div class="stock-grid" id="stockGrid"></div>
 
-    <!-- Stock Grid -->
-    <div class="stock-grid" id="stockGrid">
-        <!-- JavaScript ഇവിടെ ഡൈനാമിക് ആയി ജനറേറ്റ് ചെയ്യും -->
-    </div>
-
-    <!-- Note about HCLTECH price adjustment -->
-    <div class="note-box">
-        <i class="fas fa-info-circle"></i> 
-        <strong>HCLTECH അപ്ഡേറ്റ്:</strong> ശുപാർശ ചെയ്ത വില ₹1,380-1,410 ആയിരുന്നു. എന്നാൽ ഇപ്പോൾ തത്സമയ വില <strong style="color:#ffd54f;">₹1,297.60</strong> ആണ്. 
-        ഇത് ഒരു <span style="color:#8bc34a;">ഡിപ്പ്</span> ആയി കണക്കാക്കാം. ഫണ്ടമെന്റൽ ശക്തമായതിനാൽ, 
-        ഈ താഴ്ന്ന നിലയിൽ ശേഖരിക്കാൻ അവസരമായി കാണാം. <strong>Stop-loss: ₹1,250</strong> (ശുപാർശ ചെയ്യുന്നു).
-    </div>
-
-    <!-- Why these stocks? -->
-    <div style="margin-top: 1.5rem; background: #102433; border-radius: 2.2rem; padding: 1.2rem 2rem; border: 1px solid #2f4b6b;">
-        <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
-            <i class="fas fa-question-circle" style="font-size: 1.8rem; color: #f6b83e;"></i>
-            <span style="font-weight: 500; font-size: 1.1rem;">എന്തുകൊണ്ട് ഈ 10 ഓഹരികൾ?</span>
+    <div style="margin-top: 2rem; background: #102433; border-radius: 2rem; padding: 1.5rem 2rem; border: 1px solid #2f4b6b;">
+        <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;">
+            <i class="fas fa-chart-pie" style="font-size: 1.5rem; color: #f6b83e;"></i>
+            <span style="font-weight: 500; font-size: 1.1rem;">പുതിയ അപ്ഡേറ്റിൽ ഉൾപ്പെടുത്തിയ ഘടകങ്ങൾ:</span>
         </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 0.8rem 1.8rem; margin-top: 0.6rem; font-size: 0.9rem; opacity: 0.85;">
-            <span><i class="fas fa-check-circle" style="color: #8bc34a;"></i> ROE > 18%</span>
-            <span><i class="fas fa-check-circle" style="color: #8bc34a;"></i> P/E < 30</span>
-            <span><i class="fas fa-check-circle" style="color: #8bc34a;"></i> Debt/Equity < 1.2</span>
-            <span><i class="fas fa-check-circle" style="color: #8bc34a;"></i> EPS വളർച്ച > 10%</span>
-            <span><i class="fas fa-check-circle" style="color: #8bc34a;"></i> 200 DMA മുകളിൽ</span>
-            <span><i class="fas fa-check-circle" style="color: #8bc34a;"></i> RSI 40-65</span>
-            <span><i class="fas fa-check-circle" style="color: #8bc34a;"></i> വോളിയം > ശരാശരി</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.8rem 1.8rem; font-size: 0.9rem; opacity: 0.85;">
+            <span><i class="fas fa-check-circle" style="color: #8bc34a;"></i> 50-DMA & 200-DMA ട്രെൻഡ് അനാലിസിസ്</span>
+            <span><i class="fas fa-check-circle" style="color: #8bc34a;"></i> ഡിവിഡൻഡ് യീൽഡ് (Dividend Yield)</span>
+            <span><i class="fas fa-check-circle" style="color: #8bc34a;"></i> മാർക്കറ്റ് ക്യാപ് (കമ്പനിയുടെ വലിപ്പം)</span>
+            <span><i class="fas fa-check-circle" style="color: #8bc34a;"></i> ഗൂഗിൾ ഷീറ്റ് ഇല്ലാതെ നേരിട്ടുള്ള API ഇന്റഗ്രേഷൻ</span>
         </div>
-        <div style="margin-top: 0.6rem; background: #0a1b2b; padding: 0.5rem 1.2rem; border-radius: 40px; font-size: 0.85rem; border-left: 4px solid #f6b83e;">
-            <i class="fas fa-robot" style="color: #f6b83e;"></i> 
-            <strong>DeepSeek AI</strong> — ഫണ്ടമെന്റൽ + ടെക്നിക്കൽ സ്ക്രീനിംഗ് വഴി തിരഞ്ഞെടുത്ത മികച്ച 10 ഓഹരികൾ. 
-            ഓരോന്നും <span style="color: #f6b83e;">"Excellent"</span> റേറ്റിംഗ് നേടിയവ.
-        </div>
-    </div>
-
-    <div class="footer-meta">
-        <i class="fas fa-database"></i> NSE DeepSeek Screener · AI പവർഡ് · വാരാന്ത്യ ശുപാർശ · v4.1 · തത്സമയ വില ഉൾപ്പെടുത്തിയിരിക്കുന്നു
     </div>
 </div>
 
@@ -355,36 +136,38 @@
     (function() {
         "use strict";
 
-        // ---------- Candidate universe: 15 high-quality large-cap NSE stocks (10 core + 5 additional, sector-diverse) ----------
-        // Kept small on purpose — fewer API calls = fewer proxy/rate-limit failures, faster load.
+        // Expanded Top Nifty Stocks Universe (20 strong companies across sectors)
         const CANDIDATE_UNIVERSE = [
-            { symbol: "RELIANCE",   name: "Reliance Industries",   sector: "Energy" },
-            { symbol: "INFY",       name: "Infosys",                sector: "IT" },
-            { symbol: "HDFCBANK",   name: "HDFC Bank",              sector: "Banking" },
-            { symbol: "ITC",        name: "ITC Limited",            sector: "Consumer" },
-            { symbol: "TCS",        name: "Tata Consultancy",       sector: "IT" },
-            { symbol: "MARUTI",     name: "Maruti Suzuki",          sector: "Auto" },
-            { symbol: "HCLTECH",    name: "HCL Technologies",       sector: "IT" },
-            { symbol: "ASIANPAINT", name: "Asian Paints",           sector: "Consumer" },
-            { symbol: "TITAN",      name: "Titan Company",          sector: "Consumer" },
-            { symbol: "SUNPHARMA",  name: "Sun Pharma",             sector: "Pharma" },
-            { symbol: "ICICIBANK",  name: "ICICI Bank",             sector: "Banking" },
-            { symbol: "BAJFINANCE", name: "Bajaj Finance",          sector: "Finance" },
-            { symbol: "LT",         name: "Larsen & Toubro",        sector: "Infra" },
-            { symbol: "TATAMOTORS", name: "Tata Motors",            sector: "Auto" },
-            { symbol: "BHARTIARTL", name: "Bharti Airtel",          sector: "Telecom" }
+            { symbol: "RELIANCE", name: "Reliance Industries", sector: "Energy" },
+            { symbol: "HDFCBANK", name: "HDFC Bank", sector: "Banking" },
+            { symbol: "INFY", name: "Infosys", sector: "IT" },
+            { symbol: "TCS", name: "Tata Consultancy", sector: "IT" },
+            { symbol: "ITC", name: "ITC Limited", sector: "Consumer" },
+            { symbol: "LT", name: "Larsen & Toubro", sector: "Infra" },
+            { symbol: "ICICIBANK", name: "ICICI Bank", sector: "Banking" },
+            { symbol: "BHARTIARTL", name: "Bharti Airtel", sector: "Telecom" },
+            { symbol: "SBIN", name: "State Bank of India", sector: "Banking" },
+            { symbol: "ASIANPAINT", name: "Asian Paints", sector: "Consumer" },
+            { symbol: "BAJFINANCE", name: "Bajaj Finance", sector: "Finance" },
+            { symbol: "MARUTI", name: "Maruti Suzuki", sector: "Auto" },
+            { symbol: "TATAMOTORS", name: "Tata Motors", sector: "Auto" },
+            { symbol: "SUNPHARMA", name: "Sun Pharma", sector: "Pharma" },
+            { symbol: "TITAN", name: "Titan Company", sector: "Consumer" },
+            { symbol: "HCLTECH", name: "HCL Technologies", sector: "IT" },
+            { symbol: "NTPC", name: "NTPC Limited", sector: "Energy" },
+            { symbol: "TATASTEEL", name: "Tata Steel", sector: "Metals" },
+            { symbol: "M&M", name: "Mahindra & Mahindra", sector: "Auto" },
+            { symbol: "ULTRACEMCO", name: "UltraTech Cement", sector: "Cement" }
         ];
 
         const grid = document.getElementById('stockGrid');
         const lastUpdatedEl = document.getElementById('lastUpdated');
 
-        // ---------- CORS proxy fallback chain (widened for redundancy) ----------
+        // CORS Proxies
         const CORS_PROXIES = [
             url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
             url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-            url => `https://thingproxy.freeboard.io/fetch/${url}`,
-            url => `https://cors.eu.org/${url}`
+            url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`
         ];
 
         async function fetchWithProxyFallback(targetUrl) {
@@ -392,49 +175,18 @@
             for (const buildProxyUrl of CORS_PROXIES) {
                 try {
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 9000);
+                    const timeoutId = setTimeout(() => controller.abort(), 8000);
                     const res = await fetch(buildProxyUrl(targetUrl), { cache: 'no-store', signal: controller.signal });
                     clearTimeout(timeoutId);
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     return await res.json();
-                } catch (err) {
-                    lastErr = err;
-                }
+                } catch (err) { lastErr = err; }
             }
-            throw lastErr || new Error('എല്ലാ പ്രോക്സികളും പരാജയപ്പെട്ടു');
+            throw lastErr || new Error('പ്രോക്സി പരാജയപ്പെട്ടു');
         }
 
-        // ---------- Primary data source: NSE India's own quote API. No crumb system like Yahoo, but NSE's
-        // bot-protection sometimes blocks proxy requests that lack a prior session cookie. We "warm up" by
-        // hitting the homepage once through the same proxy before the real calls, which helps on proxies
-        // that reuse an outbound connection/cookie-jar per host. ----------
-        let nseWarmedUp = false;
-        async function warmUpNseSession() {
-            if (nseWarmedUp) return;
-            nseWarmedUp = true;
-            try {
-                await fetchWithProxyFallback('https://www.nseindia.com/api/marketStatus');
-            } catch (err) {
-                // best-effort only — proceed regardless
-            }
-        }
-
-        async function fetchNseQuote(symbol) {
-            const url = `https://www.nseindia.com/api/quote-equity?symbol=${encodeURIComponent(symbol)}`;
-            const data = await fetchWithProxyFallback(url);
-            const priceInfo = data?.priceInfo;
-            if (!priceInfo || !priceInfo.lastPrice) throw new Error('NSE വില ലഭ്യമല്ല');
-            return {
-                price: priceInfo.lastPrice,
-                prevClose: priceInfo.previousClose ?? null,
-                week52High: priceInfo.weekHighLow?.max ?? null,
-                week52Low: priceInfo.weekHighLow?.min ?? null,
-                momentum3m: null
-            };
-        }
-
-        // ---------- Fallback data source: Yahoo chart endpoint (may be crumb-blocked, tried only if NSE fails) ----------
         async function fetchChartData(symbol) {
+            // Fetch 1 year daily data for DMA calculation
             const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}.NS?interval=1d&range=1y`;
             const data = await fetchWithProxyFallback(url);
             const result = data?.chart?.result?.[0];
@@ -443,173 +195,129 @@
             const meta = result.meta;
             const price = meta.regularMarketPrice;
             const prevClose = meta.previousClose ?? meta.chartPreviousClose;
-            if (!price) throw new Error('വില ലഭ്യമല്ല');
-
             const closes = (result.indicators?.quote?.[0]?.close || []).filter(c => c != null);
+            
             let week52High = meta.fiftyTwoWeekHigh ?? null;
             let week52Low = meta.fiftyTwoWeekLow ?? null;
-            if (closes.length) {
-                week52High = week52High != null ? Math.max(week52High, ...closes, price) : Math.max(...closes, price);
-                week52Low = week52Low != null ? Math.min(week52Low, ...closes, price) : Math.min(...closes, price);
-            }
+            let dma50 = null, dma200 = null;
+            
+            if (closes.length >= 50) dma50 = closes.slice(-50).reduce((a,b)=>a+b,0)/50;
+            if (closes.length >= 200) dma200 = closes.slice(-200).reduce((a,b)=>a+b,0)/200;
 
-            // ~3-month momentum as a live substitute for "growth potential" when fundamentals aren't available
             let momentum3m = null;
             if (closes.length >= 63) {
                 const past = closes[closes.length - 63];
                 if (past) momentum3m = ((price - past) / past) * 100;
             }
 
-            return { price, prevClose, week52High, week52Low, momentum3m };
+            return { price, prevClose, week52High, week52Low, dma50, dma200, momentum3m };
         }
 
-        // Tries NSE India first (primary), falls back to Yahoo chart if NSE fails for this symbol
-        async function fetchPriceData(symbol) {
-            try {
-                return await fetchNseQuote(symbol);
-            } catch (nseErr) {
-                return await fetchChartData(symbol);
-            }
-        }
-
-        // ---------- Enrichment source: fundamentals (P/E, ROE, D/E, analyst target). Best-effort — Yahoo often
-        // blocks this endpoint without a browser cookie/crumb, so failures here are silently tolerated. ----------
         async function fetchFundamentals(symbol) {
             try {
                 const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}.NS?modules=summaryDetail,financialData`;
                 const data = await fetchWithProxyFallback(url);
                 const result = data?.quoteSummary?.result?.[0];
                 if (!result) return {};
+                
                 const pe = result.summaryDetail?.trailingPE?.raw ?? null;
+                const divYield = result.summaryDetail?.dividendYield?.raw != null ? result.summaryDetail.dividendYield.raw * 100 : null;
+                const mcap = result.summaryDetail?.marketCap?.fmt ?? 'N/A';
                 const roe = result.financialData?.returnOnEquity?.raw != null ? result.financialData.returnOnEquity.raw * 100 : null;
                 let de = result.financialData?.debtToEquity?.raw ?? null;
-                if (de != null && de > 10) de = de / 100; // Yahoo often reports D/E as a percentage-like number
+                if (de != null && de > 10) de = de / 100; 
                 const epsGrowth = result.financialData?.earningsGrowth?.raw != null ? result.financialData.earningsGrowth.raw * 100 : null;
                 const targetMean = result.financialData?.targetMeanPrice?.raw ?? null;
-                const recommendation = result.financialData?.recommendationKey ?? null;
-                return { pe, roe, de, epsGrowth, targetMean, recommendation };
-            } catch (err) {
-                return {}; // fundamentals are optional — chart data alone is enough to keep the screener working
-            }
+                
+                return { pe, divYield, mcap, roe, de, epsGrowth, targetMean };
+            } catch (err) { return {}; }
         }
 
-        // Fetches live price/range (required) + fundamentals (optional) for one NSE symbol
         async function fetchStockData(candidate) {
             const symbol = candidate.symbol;
-            const priceData = await fetchPriceData(symbol); // must succeed (NSE, else Yahoo fallback), or this stock is dropped
-            const fundamentals = await fetchFundamentals(symbol); // best-effort, degrades gracefully
+            const priceData = await fetchChartData(symbol);
+            const fundamentals = await fetchFundamentals(symbol);
             return { symbol, name: candidate.name, sector: candidate.sector, ...priceData, ...fundamentals };
         }
 
-        // Simple concurrency-limited batch runner so we don't hammer the free CORS proxies
-        async function fetchAllInBatches(items, worker, batchSize = 5) {
+        async function fetchAllInBatches(items, worker, batchSize = 4) {
             const settled = [];
             for (let i = 0; i < items.length; i += batchSize) {
                 const batch = items.slice(i, i + batchSize);
-                const results = await Promise.allSettled(batch.map(worker));
-                settled.push(...results);
+                settled.push(...await Promise.allSettled(batch.map(worker)));
             }
             return settled;
         }
 
-        // ---------- Composite scoring ----------
-        // Primary signals (always available from chart data): 52-week range position (value) + 3-month momentum.
-        // Bonus signals (only when fundamentals fetch succeeds): ROE, D/E, P/E, analyst upside.
         function scoreStock(s) {
             let score = 0;
-
             if (s.week52Low != null && s.week52High != null && s.week52High > s.week52Low) {
                 s.rangePosition = (s.price - s.week52Low) / (s.week52High - s.week52Low);
-                score += (1 - s.rangePosition) * 25; // lower in the range = more "cheap/dip" points, up to 25
+                score += (1 - s.rangePosition) * 20; 
             }
-            if (s.momentum3m != null) {
-                score += Math.min(Math.max(s.momentum3m, -20), 30) * 0.6; // reward stocks recovering, cap extremes
-            }
-            if (s.roe != null) score += Math.min(s.roe, 40) * 1.0;
-            if (s.de != null) score += Math.max(0, (1.5 - s.de)) * 10;
-            if (s.pe != null && s.pe > 0) score += Math.max(0, (35 - s.pe)) * 0.8;
-            if (s.epsGrowth != null) score += Math.min(Math.max(s.epsGrowth, -20), 40) * 0.6;
+            if (s.momentum3m != null) score += Math.min(Math.max(s.momentum3m, -20), 30) * 0.5;
+            if (s.dma200 != null && s.price > s.dma200) score += 10; // Positive trend bonus
+            if (s.divYield != null) score += Math.min(s.divYield, 5) * 2; // Reward dividends
+            if (s.roe != null) score += Math.min(s.roe, 40) * 0.8;
+            if (s.pe != null && s.pe > 0 && s.pe < 30) score += 10;
             if (s.targetMean != null && s.price) {
                 s.upsidePct = ((s.targetMean - s.price) / s.price) * 100;
-                score += Math.min(Math.max(s.upsidePct, -20), 40) * 1.2;
+                score += Math.min(Math.max(s.upsidePct, -10), 40) * 1.5;
             }
             return score;
         }
 
-        function isDip(s) {
-            // "Dip" = trading in the lower third of its 52-week range → potentially undervalued zone
-            if (s.rangePosition != null) return s.rangePosition <= 0.35;
-            if (s.week52Low == null || s.week52High == null || s.week52High === s.week52Low) return false;
-            return (s.price - s.week52Low) / (s.week52High - s.week52Low) <= 0.35;
-        }
-
-        function fmtINR(n) {
-            if (n == null || isNaN(n)) return '—';
-            return '₹ ' + n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
-        }
-
-        function buildReason(s) {
-            const parts = [];
-            if (s.roe != null) parts.push(`ROE ${s.roe.toFixed(1)}%`);
-            if (s.de != null) parts.push(`D/E ${s.de.toFixed(2)}`);
-            if (s.pe != null) parts.push(`P/E ${s.pe.toFixed(1)}`);
-            if (s.epsGrowth != null) parts.push(`EPS വളർച്ച ${s.epsGrowth.toFixed(1)}%`);
-            if (s.rangePosition != null) parts.push(`52-ആഴ്ച റേഞ്ചിൽ ${(s.rangePosition * 100).toFixed(0)}% നിലയിൽ`);
-            if (s.momentum3m != null) parts.push(`3-മാസ ചലനം ${s.momentum3m >= 0 ? '+' : ''}${s.momentum3m.toFixed(1)}%`);
-            let line = (parts.length ? parts.join(', ') : 'അടിസ്ഥാന ലൈവ് വില ഡാറ്റ') + '.';
-            if (s.targetMean != null && s.upsidePct != null) {
-                line += ` അനലിസ്റ്റ് ടാർഗറ്റ് ${fmtINR(s.targetMean)} (${s.upsidePct >= 0 ? '+' : ''}${s.upsidePct.toFixed(1)}% സാധ്യത).`;
-            }
-            if (s.recommendation) {
-                line += ` അനലിസ്റ്റ് റേറ്റിംഗ്: ${s.recommendation.toUpperCase()}.`;
-            }
-            if (s.pe == null && s.roe == null) {
-                line += ` <span style="opacity:0.6;">(ഫണ്ടമെന്റൽ ഡാറ്റ ഈ സമയത്ത് ലഭ്യമായില്ല — വില/momentum അടിസ്ഥാനത്തിലുള്ള സ്കോർ.)</span>`;
-            }
-            return line;
-        }
+        function fmtINR(n) { return n == null || isNaN(n) ? '—' : '₹ ' + n.toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
 
         function renderStocks(stocks) {
             let html = '';
             stocks.forEach((s, idx) => {
-                const dip = isDip(s);
-                const highUpside = s.upsidePct != null && s.upsidePct >= 15;
                 const change = s.prevClose ? (((s.price - s.prevClose) / s.prevClose) * 100) : null;
                 const changeHtml = change !== null
-                    ? `<span class="price-change ${change >= 0 ? 'up' : 'down'}">${change >= 0 ? '▲' : '▼'} ${Math.abs(change).toFixed(2)}%</span>`
-                    : '';
-                const entryLow = s.price * 0.98;
-                const entryHigh = s.price * 1.02;
-                const target = s.targetMean != null ? s.targetMean : s.price * 1.1;
-                const stopLoss = s.week52Low != null ? Math.max(s.week52Low, s.price * 0.93) : s.price * 0.93;
+                    ? `<span class="price-change ${change >= 0 ? 'up' : 'down'}">${change >= 0 ? '▲' : '▼'} ${Math.abs(change).toFixed(2)}%</span>` : '';
+                
+                // Trading Logic: Entry, Target, SL
+                const entryLow = s.price * 0.985;
+                const entryHigh = s.price * 1.015;
+                const target = s.targetMean != null && s.targetMean > s.price ? s.targetMean : s.price * 1.08;
+                const stopLoss = s.dma50 != null ? Math.min(s.dma50, s.price * 0.94) : s.price * 0.94;
+                
+                const dmaText = (s.dma200 && s.price > s.dma200) ? `<span class="badge-dma">Above 200 DMA</span>` : '';
+                const isDip = s.rangePosition != null && s.rangePosition <= 0.35;
 
                 html += `
-                    <div class="stock-card" style="${dip ? 'border-color: #f6b83e88;' : ''}">
+                    <div class="stock-card" style="${isDip ? 'border-color: #f6b83e88;' : ''}">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span class="rank"><i class="fas fa-crown"></i> #${idx + 1}</span>
-                            <span class="badge-excellent"><i class="fas fa-star"></i> Excellent</span>
+                            <span class="badge-excellent"><i class="fas fa-star"></i> സ്കോർ: ${s.score.toFixed(0)}</span>
                         </div>
-                        <h3>${s.symbol} <span style="font-size: 0.9rem; font-weight: 400;">${s.name}</span>
-                            ${dip ? '<span class="badge-update"><i class="fas fa-arrow-down" style="color:#8bc34a;"></i> ഡിപ്പ്</span>' : ''}
-                            ${highUpside ? '<span class="badge-update"><i class="fas fa-arrow-up" style="color:#8bc34a;"></i> ഉയർന്ന സാധ്യത</span>' : ''}
-                        </h3>
-                        <div><span class="sector-tag"><i class="fas fa-tag"></i> ${s.sector}</span></div>
+                        <h3>${s.symbol} <span style="font-size: 0.9rem; font-weight: 400;">${s.name}</span></h3>
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.5rem;">
+                            <span class="sector-tag"><i class="fas fa-tag"></i> ${s.sector}</span>
+                            ${dmaText}
+                        </div>
+                        
                         <div class="metrics">
-                            <span><i class="fas fa-chart-line"></i> P/E: <span class="highlight">${s.pe != null ? s.pe.toFixed(1) : '—'}</span></span>
-                            <span><i class="fas fa-coins"></i> ROE: <span class="highlight">${s.roe != null ? s.roe.toFixed(1) + '%' : '—'}</span></span>
-                            <span><i class="fas fa-scale-balanced"></i> D/E: <span class="highlight">${s.de != null ? s.de.toFixed(2) : '—'}</span></span>
-                            <span><i class="fas fa-arrow-up"></i> EPS: <span class="highlight">${s.epsGrowth != null ? s.epsGrowth.toFixed(1) + '%' : '—'}</span></span>
+                            <span>P/E: <span class="highlight">${s.pe != null ? s.pe.toFixed(1) : '—'}</span></span>
+                            <span>ROE: <span class="highlight">${s.roe != null ? s.roe.toFixed(1) + '%' : '—'}</span></span>
+                            <span>Div Yield: <span class="highlight">${s.divYield != null ? s.divYield.toFixed(2) + '%' : '—'}</span></span>
+                            <span>M.Cap: <span class="highlight">${s.mcap}</span></span>
                         </div>
-                        <!-- Entry / Target / StopLoss / Live Price -->
+                        
                         <div class="entry-exit-row">
-                            <span><i class="fas fa-arrow-right buy"></i> <strong>വാങ്ങുക:</strong> ${fmtINR(entryLow)} - ${fmtINR(entryHigh)}</span>
-                            <span><i class="fas fa-flag-checkered" style="color:#ffd54f;"></i> <strong>ടാർഗറ്റ്:</strong> ${fmtINR(target)}</span>
-                            <span><i class="fas fa-stop-circle sell"></i> <strong>SL:</strong> ${fmtINR(stopLoss)}</span>
-                            <span class="live-price"><i class="fas fa-circle" style="color:#4caf50; font-size:0.5rem;"></i> തത്സമയം: ${fmtINR(s.price)} ${changeHtml}</span>
+                            <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
+                                <span class="live-price">LTP: ${fmtINR(s.price)} ${changeHtml}</span>
+                            </div>
+                            <span class="buy"><i class="fas fa-arrow-right"></i> <strong>Entry:</strong> ${fmtINR(entryLow)} - ${fmtINR(entryHigh)}</span>
+                            <span class="target"><i class="fas fa-flag-checkered"></i> <strong>Target:</strong> ${fmtINR(target)}</span>
+                            <span class="sell"><i class="fas fa-stop-circle"></i> <strong>SL:</strong> ${fmtINR(stopLoss)}</span>
                         </div>
+                        
                         <div class="reason">
-                            <i class="fas fa-lightbulb"></i> ${buildReason(s)}
-                            ${dip ? ' <strong style="color:#8bc34a;">(52-ആഴ്ച റേഞ്ചിന്റെ താഴ്ന്ന ഭാഗത്ത് — ശേഖരിക്കാൻ അവസരം)</strong>' : ''}
+                            <i class="fas fa-lightbulb"></i> 
+                            ${s.upsidePct ? `അനലിസ്റ്റ് ടാർഗറ്റ് പ്രകാരം <strong>${s.upsidePct.toFixed(1)}%</strong> വളർച്ചയ്ക്ക് സാധ്യത.` : ''}
+                            ${s.dma50 ? ` 50-ദിവസ ശരാശരി വില: ${fmtINR(s.dma50)}.` : ''}
+                            ${isDip ? ' <strong>(52-ആഴ്ച റേഞ്ചിന്റെ താഴ്ന്ന ഭാഗത്ത് — മികച്ച എൻട്രി)</strong>' : ''}
                         </div>
                     </div>
                 `;
@@ -618,123 +326,40 @@
         }
 
         async function runScreener() {
-            lastUpdatedEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + CANDIDATE_UNIVERSE.length + ' ഓഹരികൾ സ്ക്രീൻ ചെയ്യുന്നു...';
-            grid.innerHTML = '<div style="opacity:0.6; padding: 1rem;"><i class="fas fa-spinner fa-spin"></i> ലൈവ് ഡാറ്റ ലോഡ് ചെയ്യുന്നു, ദയവായി കാത്തിരിക്കുക...</div>';
-
-            await warmUpNseSession();
+            grid.innerHTML = '<div style="opacity:0.8; padding: 2rem; width:100%; text-align:center;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>തത്സമയ മാർക്കറ്റ് ഡാറ്റ ശേഖരിക്കുന്നു...</div>';
+            
             const results = await fetchAllInBatches(CANDIDATE_UNIVERSE, fetchStockData, 5);
-
-            const ok = [];
-            let failCount = 0;
-            results.forEach(r => {
-                if (r.status === 'fulfilled') ok.push(r.value);
-                else failCount++;
-            });
-
+            const ok = results.filter(r => r.status === 'fulfilled').map(r => r.value);
+            
             if (ok.length === 0) {
-                grid.innerHTML = '<div style="opacity:0.7; padding: 1rem;"><i class="fas fa-circle-xmark" style="color:#ef9a9a;"></i> ലൈവ് ഡാറ്റ ലഭ്യമായില്ല (network/proxy പ്രശ്നം). കുറച്ച് കഴിഞ്ഞ് വീണ്ടും ശ്രമിക്കുക.</div>';
-                lastUpdatedEl.innerHTML = '<i class="fas fa-circle-xmark" style="color:#ef9a9a;"></i> ഡാറ്റ ലഭ്യമായില്ല';
+                grid.innerHTML = '<div style="color:#ef9a9a; padding: 1rem;"><i class="fas fa-wifi"></i> ഡാറ്റ ലഭ്യമല്ല. ഇന്റർനെറ്റ് പരിശോധിക്കുക.</div>';
                 return;
             }
 
             ok.forEach(s => { s.score = scoreStock(s); });
             ok.sort((a, b) => b.score - a.score);
-            const top10 = ok.slice(0, 10);
+            renderStocks(ok.slice(0, 10)); // Show top 10
 
-            renderStocks(top10);
-
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-            const dipCount = top10.filter(isDip).length;
-            lastUpdatedEl.innerHTML = `<i class="fas fa-check-circle" style="color:#8bc34a;"></i> അവസാനം അപ്ഡേറ്റ്: ${timeStr} · ${ok.length}/${CANDIDATE_UNIVERSE.length} ഓഹരികൾ ലൈവ് ആയി സ്ക്രീൻ ചെയ്തു` +
-                (dipCount > 0 ? ` · ${dipCount} എണ്ണം ഡിപ്പിൽ` : '') +
-                (failCount > 0 ? ` · ${failCount} എണ്ണം fetch പരാജയപ്പെട്ടു` : '');
+            const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            lastUpdatedEl.innerHTML = `<i class="fas fa-check-circle" style="color:#8bc34a;"></i> അപ്ഡേറ്റ് ചെയ്തത്: ${timeStr} · ${ok.length} ഓഹരികൾ ലൈവ് ആയി സ്ക്രീൻ ചെയ്തു`;
         }
 
-        // ---------- Manual paste mode: parse GOOGLEFINANCE-sourced CSV pasted by user, bypasses live fetch ----------
-        function parseSheetCsv(raw) {
-            const lines = raw.trim().split('\n').map(l => l.trim()).filter(Boolean);
-            if (!lines.length) throw new Error('ഒന്നും paste ചെയ്തിട്ടില്ല');
-
-            // skip a header row if the first cell isn't a plausible symbol-with-number-second-column
-            let startIdx = 0;
-            const firstCols = lines[0].split(',').map(c => c.trim());
-            if (isNaN(parseFloat(firstCols[1]))) startIdx = 1;
-
-            const parsed = [];
-            for (let i = startIdx; i < lines.length; i++) {
-                const cols = lines[i].split(',').map(c => c.trim());
-                if (cols.length < 2) continue;
-                const symbol = cols[0].toUpperCase();
-                const price = parseFloat(cols[1]);
-                if (!symbol || isNaN(price)) continue;
-                const num = (v) => (v !== undefined && v !== '' && !isNaN(parseFloat(v))) ? parseFloat(v) : null;
-                const candidate = CANDIDATE_UNIVERSE.find(c => c.symbol === symbol);
-                parsed.push({
-                    symbol,
-                    name: candidate ? candidate.name : symbol,
-                    sector: candidate ? candidate.sector : 'Other',
-                    price,
-                    prevClose: num(cols[2]),
-                    week52High: num(cols[3]),
-                    week52Low: num(cols[4]),
-                    pe: num(cols[5]),
-                    roe: num(cols[6]),
-                    de: num(cols[7]),
-                    epsGrowth: num(cols[8]),
-                    momentum3m: null
-                });
-            }
-            if (!parsed.length) throw new Error('CSV parse ചെയ്യാൻ കഴിഞ്ഞില്ല — format പരിശോധിക്കുക');
-            return parsed;
-        }
-
-        const pasteStatusEl = document.getElementById('pasteStatus');
-
-        document.getElementById('analyseSheetData').addEventListener('click', function() {
-            const raw = document.getElementById('sheetDataInput').value;
-            try {
-                const rows = parseSheetCsv(raw);
-                rows.forEach(s => { s.score = scoreStock(s); });
-                rows.sort((a, b) => b.score - a.score);
-                const top10 = rows.slice(0, 10);
-                renderStocks(top10);
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-                lastUpdatedEl.innerHTML = `<i class="fas fa-file-csv" style="color:#f6b83e;"></i> Google Sheet ഡാറ്റയിൽ നിന്ന് അനലൈസ് ചെയ്തു (paste ചെയ്തത്: ${timeStr})`;
-                pasteStatusEl.className = 'paste-status ok';
-                pasteStatusEl.innerHTML = `<i class="fas fa-check-circle"></i> ${rows.length} stocks അനലൈസ് ചെയ്തു`;
-            } catch (err) {
-                pasteStatusEl.className = 'paste-status err';
-                pasteStatusEl.innerHTML = `<i class="fas fa-circle-exclamation"></i> ${err.message}`;
-            }
-        });
-
-        document.getElementById('clearSheetData').addEventListener('click', function() {
-            document.getElementById('sheetDataInput').value = '';
-            pasteStatusEl.className = 'paste-status';
-            pasteStatusEl.innerHTML = '';
-            document.getElementById('pastePanel').open = false;
-            runScreener();
-        });
-
-        // initial screener run
         runScreener();
 
-        // refresh button
         document.getElementById('refreshPicks').addEventListener('click', async function(e) {
             e.preventDefault();
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> പുതുക്കുന്നു...';
+            this.disabled = true; this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> സ്കാൻ ചെയ്യുന്നു...';
             await runScreener();
-            this.disabled = false;
-            this.innerHTML = '<i class="fas fa-check"></i> പുതുക്കി';
-            setTimeout(() => {
-                this.innerHTML = '<i class="fas fa-sync-alt"></i> പുതുക്കുക';
-            }, 1500);
+            this.disabled = false; this.innerHTML = '<i class="fas fa-sync-alt"></i> വീണ്ടും സ്കാൻ ചെയ്യുക';
         });
     })();
 </script>
-
 </body>
 </html>
+"""
+
+file_path = "screener_v2.html"
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print(f"File generated successfully: {file_path}")
