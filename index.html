@@ -89,7 +89,7 @@ h1 i { color: #f6b83e; }
 
 <div id="highestDepthBanner" class="highlight-banner" style="display:none;"></div>
 
-<div class="subhead" style="margin-top:0.5rem;">വോളിയവും % മാറ്റവും അടിസ്ഥാനമാക്കിയുള്ള ഇന്നത്തെ മികച്ച 5 ഷെയറുകൾ</div>
+<div class="subhead" style="margin-top:0.5rem;">5 പ്രധാന സെക്ടറുകളിലെ ഓരോന്നിന്റെയും ടോപ്പ് ഷെയർ — ലൈവ് ഡാറ്റ (വേഗത്തിൽ)</div>
 <button class="btn" id="scanBtn"><i class="fas fa-search-dollar"></i> Find Day Best 5</button>
 <div id="statusMsg" class="status-text"></div>
 <div class="stock-grid" id="stockGrid"></div>
@@ -128,23 +128,13 @@ async function fetchViaProxies(targetUrl, statusEl) {
   throw lastErr || new Error("All proxies failed");
 }
 
-// Wider candidate universe (large/liquid NSE names) — top 5 picked by real day % change
+// 5 sectors — one most-liquid/top pick per sector, so only 5 fetches are needed (fast)
 const CANDIDATE_UNIVERSE = [
   { symbol: "RELIANCE", name: "Reliance Industries", sector: "Energy" },
-  { symbol: "TATASTEEL", name: "Tata Steel", sector: "Metals" },
-  { symbol: "SBIN", name: "State Bank of India", sector: "Banking" },
-  { symbol: "HCLTECH", name: "HCL Technologies", sector: "IT" },
-  { symbol: "M&M", name: "Mahindra & Mahindra", sector: "Auto" },
-  { symbol: "INFY", name: "Infosys", sector: "IT" },
-  { symbol: "ICICIBANK", name: "ICICI Bank", sector: "Banking" },
-  { symbol: "TCS", name: "Tata Consultancy Services", sector: "IT" },
   { symbol: "HDFCBANK", name: "HDFC Bank", sector: "Banking" },
-  { symbol: "AXISBANK", name: "Axis Bank", sector: "Banking" },
-  { symbol: "BAJFINANCE", name: "Bajaj Finance", sector: "NBFC" },
-  { symbol: "ADANIENT", name: "Adani Enterprises", sector: "Conglomerate" },
-  { symbol: "LT", name: "Larsen & Toubro", sector: "Infra" },
+  { symbol: "TCS", name: "Tata Consultancy Services", sector: "IT" },
   { symbol: "MARUTI", name: "Maruti Suzuki", sector: "Auto" },
-  { symbol: "SUNPHARMA", name: "Sun Pharma", sector: "Pharma" }
+  { symbol: "TATASTEEL", name: "Tata Steel", sector: "Metals" }
 ];
 
 function fmtINR(n) {
