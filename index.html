@@ -72,6 +72,53 @@ h1 i { color: #f6b83e; }
 .status-text { text-align: center; margin-top: 1rem; font-size: 0.88rem; color: #8bc34a; }
 .error-text { text-align: center; margin-top: 0.6rem; font-size: 0.85rem; color: #ef9a9a; background: rgba(239, 154, 154, 0.1); padding: 10px; border-radius: 8px;}
 .proxy-note { text-align:center; font-size:0.7rem; opacity:0.5; margin-top: 0.3rem; }
+
+/* Gemini AI section */
+.ai-section { margin-top: 1.5rem; padding-top: 1.3rem; border-top: 1px dashed #2f4b6b; }
+.gemini-gate { background: #102433; padding: 1.2rem; border-radius: 1.2rem; border: 1px solid #2f4b6b; text-align: center; }
+.gemini-gate i.fa-robot { font-size: 2rem; color: #a78bfa; margin-bottom: 0.6rem; }
+.gemini-gate p { font-size: 0.82rem; opacity: 0.8; margin-bottom: 1rem; line-height: 1.5; }
+.api-input { width: 100%; padding: 0.85rem 1.1rem; border-radius: 30px; border: 1px solid #4b6a8a; background: #0b1a2e; color: white; font-size: 0.95rem; margin-bottom: 0.8rem; text-align: center; }
+.api-input:focus { outline: none; border-color: #a78bfa; }
+.btn-purple { background: #a78bfa; color: #16102b; }
+.ai-header-row { display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.8rem; }
+.ai-key-status { font-size: 0.72rem; background: #1b3450; padding: 0.35rem 0.9rem; border-radius: 30px; border: 1px solid #a78bfa55; color: #c4b5fd; display:flex; align-items:center; gap:0.4rem; }
+.change-key-btn { font-size: 0.72rem; background: transparent; border: 1px solid #ef9a9a; color: #ef9a9a; padding: 0.3rem 0.8rem; border-radius: 30px; cursor: pointer; }
+.ai-card {
+  background: rgba(167, 139, 250, 0.06); border-radius: 1.2rem; padding: 1.2rem;
+  border: 1px solid rgba(167, 139, 250, 0.25); margin-bottom: 1rem;
+  animation: fadeIn 0.4s ease-in-out;
+}
+.ai-card h3 { font-size: 1.2rem; margin-bottom: 0.6rem; display:flex; justify-content:space-between; align-items:center; }
+.composite-badge { background: #a78bfa; color: #16102b; font-weight: bold; padding: 0.25rem 0.8rem; border-radius: 30px; font-size: 0.85rem; }
+.score-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.6rem; margin-bottom: 0.8rem; }
+.score-box { background: #0b1f32; border-radius: 0.8rem; padding: 0.6rem; text-align: center; }
+.score-box .label { font-size: 0.68rem; opacity: 0.7; margin-bottom: 0.2rem; }
+.score-box .val { font-size: 1.15rem; font-weight: bold; color: #c4b5fd; }
+.score-reason { font-size: 0.72rem; opacity: 0.65; margin-top: 0.25rem; line-height: 1.3; }
+.risk-flag { display:inline-block; font-size: 0.7rem; font-weight: bold; padding: 0.2rem 0.7rem; border-radius: 30px; margin-bottom: 0.6rem; }
+.risk-LOW { background: #1b3a1b; color: #8bc34a; } .risk-MEDIUM { background: #3a3319; color: #ffd54f; } .risk-HIGH { background: #3a1b1b; color: #ef9a9a; }
+.ai-summary { font-size: 0.85rem; opacity: 0.9; line-height: 1.5; }
+.disclaimer-box { font-size: 0.75rem; opacity: 0.6; text-align: center; margin-top: 0.8rem; padding: 0.7rem; background: rgba(255,255,255,0.03); border-radius: 0.8rem; }
+
+/* Fundamental criteria filter */
+.criteria-panel { background: #102433; border-radius: 1.2rem; border: 1px solid #2f4b6b; padding: 1.1rem; margin-bottom: 1.2rem; }
+.criteria-panel-header { display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
+.criteria-panel-header h4 { font-size: 0.95rem; display:flex; align-items:center; gap:0.5rem; color:#c4b5fd; }
+.criteria-panel-header i.fa-chevron-down { transition: transform 0.2s; font-size: 0.8rem; opacity: 0.7; }
+.criteria-panel.collapsed .criteria-body { display: none; }
+.criteria-panel.collapsed .fa-chevron-down { transform: rotate(-90deg); }
+.criteria-body { margin-top: 1rem; }
+.criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-bottom: 0.9rem; }
+.criteria-field label { font-size: 0.7rem; opacity: 0.75; display:block; margin-bottom: 0.3rem; }
+.criteria-field input { width: 100%; padding: 0.55rem 0.8rem; border-radius: 10px; border: 1px solid #4b6a8a; background: #0b1a2e; color: white; font-size: 0.9rem; }
+.criteria-field input:focus { outline: none; border-color: #a78bfa; }
+.criteria-save-row { display:flex; gap: 0.6rem; align-items:center; }
+.criteria-save-row .btn { font-size: 0.85rem; padding: 0.6rem 1rem; }
+.criteria-saved-tag { font-size: 0.72rem; color: #8bc34a; display:flex; align-items:center; gap:0.3rem; white-space: nowrap; }
+.match-badge { display:inline-flex; align-items:center; gap:0.3rem; font-size: 0.72rem; font-weight:bold; padding: 0.2rem 0.7rem; border-radius: 30px; margin-bottom: 0.6rem; margin-left: 0.4rem; }
+.match-yes { background: #1b3a1b; color: #8bc34a; } .match-no { background: #3a1b1b; color: #ef9a9a; }
+.criteria-notes { font-size: 0.72rem; opacity: 0.65; margin-top: 0.3rem; line-height: 1.3; }
 </style>
 </head>
 <body>
@@ -94,6 +141,75 @@ h1 i { color: #f6b83e; }
 <div id="statusMsg" class="status-text"></div>
 <div class="stock-grid" id="stockGrid"></div>
 <div class="proxy-note" id="proxyNote"></div>
+
+<div class="ai-section">
+  <div id="geminiGate" class="gemini-gate">
+    <i class="fas fa-robot"></i>
+    <h2>Gemini API Key നൽകുക</h2>
+    <p>രാവിലെ ലൈവ് ഡാറ്റ ഉപയോഗിച്ച് ഫണ്ടമെന്റൽ + ടെക്നിക്കൽ AI വിശകലനത്തിന് Google AI Studio-യിൽ നിന്നുള്ള സൗജന്യ Gemini API Key വേണം.</p>
+    <input type="password" id="geminiKeyInput" class="api-input" placeholder="Enter Gemini API Key...">
+    <button class="btn btn-purple" id="saveGeminiBtn"><i class="fas fa-save"></i> Save & Continue</button>
+  </div>
+
+  <div id="geminiMain" style="display:none;">
+    <div class="ai-header-row">
+      <span class="ai-key-status"><i class="fas fa-check-circle"></i> Gemini Key Active</span>
+      <button class="change-key-btn" id="changeGeminiBtn"><i class="fas fa-cog"></i> Change Key</button>
+    </div>
+    <div class="subhead">ഇന്നത്തെ 5 ലൈവ് ഷെയറുകളുടെ Fundamental + Technical AI വിശകലനം</div>
+
+    <div class="criteria-panel" id="criteriaPanel">
+      <div class="criteria-panel-header" id="criteriaPanelHeader">
+        <h4><i class="fas fa-filter"></i> Fundamental Filter Criteria (screener.in style)</h4>
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="criteria-body">
+        <div class="criteria-grid">
+          <div class="criteria-field">
+            <label>Min ROE (%)</label>
+            <input type="number" id="critMinROE" value="15">
+          </div>
+          <div class="criteria-field">
+            <label>Min ROCE (%)</label>
+            <input type="number" id="critMinROCE" value="15">
+          </div>
+          <div class="criteria-field">
+            <label>Max Debt to Equity</label>
+            <input type="number" step="0.1" id="critMaxDE" value="0.5">
+          </div>
+          <div class="criteria-field">
+            <label>Min Promoter Holding (%)</label>
+            <input type="number" id="critMinPromoter" value="45">
+          </div>
+          <div class="criteria-field">
+            <label>Min Sales Growth 3Y (%)</label>
+            <input type="number" id="critMinSalesGrowth" value="10">
+          </div>
+          <div class="criteria-field">
+            <label>Min Profit Growth 3Y (%)</label>
+            <input type="number" id="critMinProfitGrowth" value="10">
+          </div>
+          <div class="criteria-field">
+            <label>Max PEG Ratio</label>
+            <input type="number" step="0.1" id="critMaxPEG" value="1.5">
+          </div>
+          <div class="criteria-field">
+            <label>Min Volume Spike (x avg)</label>
+            <input type="number" step="0.1" id="critMinVolSpike" value="1.5">
+          </div>
+        </div>
+        <div class="criteria-save-row">
+          <button class="btn btn-purple" id="saveCriteriaBtn" style="width:auto;"><i class="fas fa-save"></i> Save Criteria</button>
+          <span class="criteria-saved-tag" id="criteriaSavedTag" style="display:none;"><i class="fas fa-check-circle"></i> Saved</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-purple" id="aiAnalyzeBtn"><i class="fas fa-brain"></i> AI വിശകലനം ചെയ്യുക</button>
+    <div id="aiStatusMsg" class="status-text"></div>
+    <div id="aiResultGrid" style="margin-top:1rem;"></div>
+  </div>
+</div>
 </div>
 
 <script>
@@ -251,6 +367,8 @@ document.getElementById('singleStockBtn').addEventListener('click', async () => 
 // -------------------------------------------------------------
 // Day Best 5 Screener — real ranking by |day % change| and volume, sequential fetch
 // -------------------------------------------------------------
+let lastScreenerResults = [];
+
 async function runScreener() {
   const btn = document.getElementById('scanBtn');
   const grid = document.getElementById('stockGrid');
@@ -288,6 +406,7 @@ async function runScreener() {
   // Rank by absolute day % change (real momentum), take top 5
   results.sort((a, b) => Math.abs(b.q.changePct) - Math.abs(a.q.changePct));
   const top5 = results.slice(0, 5);
+  lastScreenerResults = top5; // store for AI analysis reuse
 
   let html = '';
   top5.forEach(r => {
@@ -318,6 +437,266 @@ async function runScreener() {
 document.getElementById('scanBtn').addEventListener('click', runScreener);
 
 document.getElementById('proxyNote').innerHTML = 'Data source: Yahoo Finance (query1.finance.yahoo.com) via CORS proxy chain — allorigins → codetabs → corsproxy.io → thingproxy';
+
+// -------------------------------------------------------------
+// Gemini AI Fundamental + Technical Analysis
+// -------------------------------------------------------------
+const geminiGate = document.getElementById('geminiGate');
+const geminiMain = document.getElementById('geminiMain');
+const geminiKeyInput = document.getElementById('geminiKeyInput');
+
+function checkGeminiKey() {
+  const key = localStorage.getItem('geminiApiKey');
+  if (key) {
+    geminiGate.style.display = 'none';
+    geminiMain.style.display = 'block';
+  } else {
+    geminiGate.style.display = 'block';
+    geminiMain.style.display = 'none';
+  }
+}
+
+document.getElementById('saveGeminiBtn').addEventListener('click', () => {
+  const key = geminiKeyInput.value.trim();
+  if (key) {
+    localStorage.setItem('geminiApiKey', key);
+    geminiKeyInput.value = '';
+    checkGeminiKey();
+  } else {
+    alert('ദയവായി സാധുവായ ഒരു Gemini API Key നൽകുക!');
+  }
+});
+
+document.getElementById('changeGeminiBtn').addEventListener('click', () => {
+  if (confirm('നിലവിലെ Gemini API Key മായ്ക്കണമെന്നുണ്ടോ?')) {
+    localStorage.removeItem('geminiApiKey');
+    document.getElementById('aiResultGrid').innerHTML = '';
+    document.getElementById('aiStatusMsg').innerHTML = '';
+    checkGeminiKey();
+  }
+});
+
+checkGeminiKey();
+
+// -------------------------------------------------------------
+// Fundamental Filter Criteria panel (collapsible, persisted)
+// -------------------------------------------------------------
+const criteriaPanel = document.getElementById('criteriaPanel');
+document.getElementById('criteriaPanelHeader').addEventListener('click', () => {
+  criteriaPanel.classList.toggle('collapsed');
+});
+
+const CRITERIA_FIELD_IDS = {
+  minROE: 'critMinROE', minROCE: 'critMinROCE', maxDebtToEquity: 'critMaxDE',
+  minPromoterHolding: 'critMinPromoter', minSalesGrowth3Y: 'critMinSalesGrowth',
+  minProfitGrowth3Y: 'critMinProfitGrowth', maxPEG: 'critMaxPEG', minVolumeSpike: 'critMinVolSpike'
+};
+
+function loadCriteria() {
+  const saved = localStorage.getItem('fundamentalCriteria');
+  if (saved) {
+    try {
+      const c = JSON.parse(saved);
+      Object.keys(CRITERIA_FIELD_IDS).forEach(k => {
+        if (c[k] !== undefined) document.getElementById(CRITERIA_FIELD_IDS[k]).value = c[k];
+      });
+    } catch (e) { /* ignore corrupt storage */ }
+  }
+}
+
+function readCriteriaFromInputs() {
+  const c = {};
+  Object.keys(CRITERIA_FIELD_IDS).forEach(k => {
+    c[k] = parseFloat(document.getElementById(CRITERIA_FIELD_IDS[k]).value);
+  });
+  return c;
+}
+
+document.getElementById('saveCriteriaBtn').addEventListener('click', () => {
+  const c = readCriteriaFromInputs();
+  localStorage.setItem('fundamentalCriteria', JSON.stringify(c));
+  const tag = document.getElementById('criteriaSavedTag');
+  tag.style.display = 'inline-flex';
+  setTimeout(() => { tag.style.display = 'none'; }, 2000);
+});
+
+loadCriteria();
+criteriaPanel.classList.add('collapsed'); // start collapsed to save space
+
+function buildAnalysisPrompt(liveDataArray) {
+  const liveDataJson = JSON.stringify(liveDataArray, null, 2);
+  const criteria = readCriteriaFromInputs();
+  const criteriaJson = JSON.stringify(criteria, null, 2);
+  return `നിങ്ങൾ ഒരു സൂക്ഷ്മതയോടെ പ്രവർത്തിക്കുന്ന NSE ഇക്വിറ്റി അനലിസ്റ്റ് ആണ്. താഴെ കൊടുത്തിരിക്കുന്ന ഷെയറുകളെ കുറിച്ച്
+ഫണ്ടമെന്റൽ, ടെക്നിക്കൽ വിശകലനം നടത്തി ഇന്നത്തെ ട്രേഡിംഗ് സെഷനുവേണ്ടി ഒരു disciplined shortlist തയ്യാറാക്കുക.
+
+ഉപയോക്താവ് നൽകിയ Fundamental Filter Criteria (screener.in സ്റ്റൈൽ thresholds):
+${criteriaJson}
+
+നിർദ്ദേശങ്ങൾ:
+1. ഓരോ ഷെയറിനും താഴെ പറയുന്ന മൂന്ന് സ്കോറുകൾ (0-100) നൽകുക, ഓരോന്നിനും കാരണം ഒറ്റ വാചകത്തിൽ:
+   - Growth Score: വരുമാന വളർച്ച, ലാഭ മാർജിൻ ട്രെൻഡ്, സെക്ടർ ഔട്ട്‌ലുക്ക് (minSalesGrowth3Y, minProfitGrowth3Y thresholds കണക്കിലെടുക്കുക)
+   - Safety Score: ഡെറ്റ്-ടു-ഇക്വിറ്റി, ക്യാഷ്ഫ്ലോ സ്ഥിരത, promoter holding stability (maxDebtToEquity, minPromoterHolding thresholds കണക്കിലെടുക്കുക)
+   - Momentum Score: നൽകിയ LTP, day-change %, volume, day high/low എന്നിവയെ അടിസ്ഥാനമാക്കി (minVolumeSpike threshold കണക്കിലെടുക്കുക)
+
+2. താഴെ കൊടുത്ത ലൈവ് ഡാറ്റ മാത്രം ഉപയോഗിക്കുക — ഊഹിക്കരുത്, missing data ഉണ്ടെങ്കിൽ "ഡാറ്റ ലഭ്യമല്ല" എന്ന് വ്യക്തമായി പറയുക. ROE, ROCE, PEG, Promoter Holding, Debt-to-Equity പോലുള്ള ഫണ്ടമെന്റൽ കണക്കുകൾ ഈ ലൈവ് ഡാറ്റയിൽ ഇല്ലാത്തതിനാൽ, നിങ്ങളുടെ പൊതുവായ അറിവ് (general knowledge) ഉപയോഗിച്ച് ഈ കമ്പനികളുടെ അറിയപ്പെടുന്ന ഫണ്ടമെന്റൽ സ്വഭാവം കണക്കിലെടുക്കുക, പക്ഷെ കൃത്യമായ നമ്പറുകൾ ഉറപ്പില്ലെങ്കിൽ "ഏകദേശ കണക്ക്" എന്ന് summary-ൽ വ്യക്തമാക്കുക:
+${liveDataJson}
+
+3. ഓരോ ഷെയറിനും composite score = (Growth×0.35 + Safety×0.35 + Momentum×0.30) കണക്കാക്കുക.
+
+4. Composite score-ന്റെ അടിസ്ഥാനത്തിൽ എല്ലാ ഷെയറുകളും ranking ക്രമത്തിൽ ഉൾപ്പെടുത്തുക (ഏറ്റവും ഉയർന്നത് ആദ്യം).
+
+5. ഓരോ ഷെയറിനും ഒരു "Risk Flag" നൽകുക: LOW / MEDIUM / HIGH —
+   ഉയർന്ന volatility, weak fundamentals, അല്ലെങ്കിൽ thin data ഉള്ളപ്പോൾ HIGH ആയി മാർക്ക് ചെയ്യുക.
+
+6. മുകളിൽ നൽകിയ Fundamental Filter Criteria-യുമായി ഓരോ ഷെയറും താരതമ്യം ചെയ്ത്:
+   - "meets_criteria": true/false നൽകുക (നിങ്ങളുടെ അറിവിലുള്ള approximate fundamentals thresholds പാലിക്കുന്നുണ്ടോ എന്ന് നോക്കി)
+   - "criteria_notes": ഏതൊക്കെ criteria pass/fail ആയി എന്ന് ഒറ്റ ചെറിയ വാചകത്തിൽ വിശദീകരിക്കുക
+
+7. മറുപടി STRICTLY താഴെ പറയുന്ന JSON ഫോർമാറ്റിൽ മാത്രം നൽകുക, മറ്റൊന്നും ചേർക്കരുത്, code fence ഇടരുത്:
+
+{
+  "generated_at": "ISO timestamp",
+  "top_picks": [
+    {
+      "symbol": "",
+      "growth_score": 0,
+      "growth_reason": "",
+      "safety_score": 0,
+      "safety_reason": "",
+      "momentum_score": 0,
+      "momentum_reason": "",
+      "composite_score": 0,
+      "risk_flag": "LOW|MEDIUM|HIGH",
+      "meets_criteria": true,
+      "criteria_notes": "",
+      "summary": ""
+    }
+  ],
+  "disclaimer": "ഇത് ഒരു നിക്ഷേപ ഉപദേശം അല്ല, വിശകലനം മാത്രമാണ്. സ്വന്തം ഗവേഷണം കൂടി നടത്തുക."
+}`;
+}
+
+async function callGeminiAnalysis(promptText, apiKey) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const body = {
+    contents: [{ parts: [{ text: promptText }] }],
+    generationConfig: { responseMimeType: "application/json", temperature: 0.3 }
+  };
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message || "Gemini API error");
+  const rawText = data.candidates && data.candidates[0] && data.candidates[0].content.parts[0].text;
+  if (!rawText) throw new Error("Empty response from Gemini");
+  const cleaned = rawText.replace(/```json|```/g, "").trim();
+  return JSON.parse(cleaned);
+}
+
+function renderAICard(pick) {
+  const riskCls = 'risk-' + (pick.risk_flag || 'MEDIUM');
+  const matchCls = pick.meets_criteria ? 'match-yes' : 'match-no';
+  const matchIcon = pick.meets_criteria ? 'fa-check-circle' : 'fa-times-circle';
+  const matchLabel = pick.meets_criteria ? 'Criteria Match' : 'Criteria Mismatch';
+  return `
+  <div class="ai-card">
+    <h3>
+      <span>${pick.symbol}</span>
+      <span class="composite-badge">${Math.round(pick.composite_score)} / 100</span>
+    </h3>
+    <span class="risk-flag ${riskCls}">Risk: ${pick.risk_flag}</span>
+    <span class="match-badge ${matchCls}"><i class="fas ${matchIcon}"></i> ${matchLabel}</span>
+    ${pick.criteria_notes ? `<div class="criteria-notes">${pick.criteria_notes}</div>` : ''}
+    <div class="score-grid">
+      <div class="score-box">
+        <div class="label">GROWTH</div>
+        <div class="val">${pick.growth_score}</div>
+        <div class="score-reason">${pick.growth_reason || ''}</div>
+      </div>
+      <div class="score-box">
+        <div class="label">SAFETY</div>
+        <div class="val">${pick.safety_score}</div>
+        <div class="score-reason">${pick.safety_reason || ''}</div>
+      </div>
+      <div class="score-box">
+        <div class="label">MOMENTUM</div>
+        <div class="val">${pick.momentum_score}</div>
+        <div class="score-reason">${pick.momentum_reason || ''}</div>
+      </div>
+    </div>
+    <div class="ai-summary">${pick.summary || ''}</div>
+  </div>
+  `;
+}
+
+async function runAIAnalysis() {
+  const btn = document.getElementById('aiAnalyzeBtn');
+  const status = document.getElementById('aiStatusMsg');
+  const resultGrid = document.getElementById('aiResultGrid');
+  const apiKey = localStorage.getItem('geminiApiKey');
+
+  if (!apiKey) { checkGeminiKey(); return; }
+
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ലൈവ് ഡാറ്റ ശേഖരിക്കുന്നു...';
+  btn.disabled = true;
+  resultGrid.innerHTML = '';
+  status.innerHTML = '';
+
+  // Use the last "Find Day Best 5" results if available; otherwise fetch fresh for the 5 sector picks
+  let dataForAnalysis = lastScreenerResults;
+  if (!dataForAnalysis || dataForAnalysis.length === 0) {
+    status.innerHTML = 'ആദ്യം ലൈവ് ഡാറ്റ എടുക്കുന്നു...';
+    const fresh = [];
+    for (const s of CANDIDATE_UNIVERSE) {
+      const q = await fetchLiveQuote(s.symbol);
+      if (q.ok) fresh.push({ ...s, q });
+      await new Promise(r => setTimeout(r, 300));
+    }
+    dataForAnalysis = fresh;
+    lastScreenerResults = fresh;
+  }
+
+  if (dataForAnalysis.length === 0) {
+    status.innerHTML = '';
+    resultGrid.innerHTML = '<div class="error-text"><i class="fas fa-exclamation-triangle"></i> ലൈവ് ഡാറ്റ ലഭിച്ചില്ല, AI വിശകലനം സാധ്യമല്ല.</div>';
+    btn.innerHTML = '<i class="fas fa-brain"></i> AI വിശകലനം ചെയ്യുക';
+    btn.disabled = false;
+    return;
+  }
+
+  const liveDataArray = dataForAnalysis.map(r => ({
+    symbol: r.symbol, name: r.name, sector: r.sector,
+    ltp: r.q.ltp, prevClose: r.q.prevClose, changePct: Number(r.q.changePct.toFixed(2)),
+    volume: r.q.volume, dayHigh: r.q.dayHigh, dayLow: r.q.dayLow
+  }));
+
+  status.innerHTML = '<i class="fas fa-brain fa-beat"></i> Gemini AI വിശകലനം നടത്തുന്നു...';
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> വിശകലനം ചെയ്യുന്നു...';
+
+  try {
+    const analysis = await callGeminiAnalysis(buildAnalysisPrompt(liveDataArray), apiKey);
+    const picks = analysis.top_picks || [];
+    picks.sort((a, b) => b.composite_score - a.composite_score);
+
+    let html = picks.map(renderAICard).join('');
+    html += `<div class="disclaimer-box"><i class="fas fa-info-circle"></i> ${analysis.disclaimer || 'ഇത് ഒരു നിക്ഷേപ ഉപദേശം അല്ല, വിശകലനം മാത്രമാണ്. സ്വന്തം ഗവേഷണം കൂടി നടത്തുക.'}</div>`;
+    resultGrid.innerHTML = html;
+
+    const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    status.innerHTML = `<i class="fas fa-check-circle"></i> AI വിശകലനം പൂർത്തിയായി: ${timeStr}`;
+  } catch (e) {
+    status.innerHTML = '';
+    resultGrid.innerHTML = `<div class="error-text"><i class="fas fa-exclamation-triangle"></i> Gemini API പിശക്: ${e.message}. API Key ശരിയാണോ എന്ന് പരിശോധിക്കുക.</div>`;
+  }
+
+  btn.innerHTML = '<i class="fas fa-brain"></i> AI വിശകലനം ചെയ്യുക';
+  btn.disabled = false;
+}
+
+document.getElementById('aiAnalyzeBtn').addEventListener('click', runAIAnalysis);
 })();
 </script>
 </body>
