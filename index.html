@@ -1,223 +1,278 @@
 <!DOCTYPE html>
 <html lang="ml">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DeepSeek NSE · API Pro Screener</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: linear-gradient(145deg, #0b1a2e 0%, #1a2f44 100%);
-            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
-            min-height: 100vh; padding: 1.5rem 1rem;
-            display: flex; justify-content: center; align-items: flex-start;
-            color: #e8f0fe;
-        }
-        .card {
-            max-width: 800px; width: 100%;
-            background: rgba(22, 40, 62, 0.85);
-            backdrop-filter: blur(8px); border-radius: 2rem; padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-        }
-        h1 { font-size: 1.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.6rem; justify-content: center; margin-bottom: 0.5rem;}
-        h1 i { color: #f6b83e; }
-        .subhead { font-size: 0.9rem; opacity: 0.8; text-align: center; margin-bottom: 1.5rem; }
-        
-        /* API Window Styles */
-        #apiWindow {
-            background: #102433; padding: 2rem 1.5rem; border-radius: 1.5rem;
-            border: 1px solid #2f4b6b; text-align: center;
-        }
-        #apiWindow i.fa-key { font-size: 3rem; color: #f6b83e; margin-bottom: 1rem; }
-        #apiWindow p { font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.8; line-height: 1.5; }
-        .api-input {
-            width: 100%; padding: 1rem 1.2rem; border-radius: 30px;
-            border: 1px solid #4b6a8a; background: #0b1a2e; color: white;
-            font-size: 1rem; margin-bottom: 1rem; text-align: center;
-        }
-        .api-input:focus { outline: none; border-color: #f6b83e; }
-        
-        /* Main Screener Styles */
-        #mainScreener { display: none; }
-        
-        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .api-status { font-size: 0.75rem; background: #1b3450; padding: 0.4rem 1rem; border-radius: 30px; border: 1px solid #4caf5055; color: #4caf50; display:flex; align-items:center; gap:0.4rem;}
-        .change-api-btn { font-size: 0.75rem; background: transparent; border: 1px solid #ef9a9a; color: #ef9a9a; padding: 0.3rem 0.8rem; border-radius: 30px; cursor: pointer; }
-        
-        .btn {
-            background: #f6b83e; border: none; padding: 0.8rem 1.5rem; border-radius: 30px;
-            font-weight: bold; color: #0b1a2e; cursor: pointer; transition: 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; font-size: 1.1rem;
-        }
-        .btn:active { transform: scale(0.95); }
-        
-        .stock-grid { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; }
-        .stock-card {
-            background: rgba(12, 27, 45, 0.8); border-radius: 1.2rem; padding: 1.2rem;
-            border: 1px solid rgba(255, 255, 255, 0.05); position: relative;
-        }
-        .stock-card h3 { font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; }
-        .sector-tag { font-size: 0.7rem; background: #1f3b57; padding: 0.2rem 0.8rem; border-radius: 30px; color: #b6d0e8; }
-        
-        .trade-box {
-            background: #0b1f32; padding: 1rem; border-radius: 1rem;
-            border: 1px solid #2f4b6b; font-size: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem;
-        }
-        .ltp-banner { background: #1a2f44; padding: 0.5rem; border-radius: 30px; text-align: center; font-weight: bold; font-size: 1.1rem; border: 1px solid #f6b83e55;}
-        .trade-row { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem; }
-        .trade-row:last-child { border-bottom: none; padding-bottom: 0; }
-        
-        .buy { color: #8bc34a; } .target { color: #ffd54f; } .sell { color: #ef9a9a; }
-        .status-text { text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #8bc34a; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DeepSeek NSE · API Pro Screener</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+background: linear-gradient(145deg, #0b1a2e 0%, #1a2f44 100%);
+font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+min-height: 100vh; padding: 1.5rem 1rem;
+display: flex; justify-content: center; align-items: flex-start;
+color: #e8f0fe;
+}
+.card {
+max-width: 800px; width: 100%;
+background: rgba(22, 40, 62, 0.85);
+backdrop-filter: blur(8px); border-radius: 2rem; padding: 1.5rem;
+border: 1px solid rgba(255, 255, 255, 0.04);
+box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+}
+h1 { font-size: 1.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.6rem; justify-content: center; margin-bottom: 0.5rem;}
+h1 i { color: #f6b83e; }
+.subhead { font-size: 0.9rem; opacity: 0.8; text-align: center; margin-bottom: 1.5rem; }
+
+/* API Window Styles */
+#apiWindow {
+background: #102433; padding: 2rem 1.5rem; border-radius: 1.5rem;
+border: 1px solid #2f4b6b; text-align: center;
+}
+#apiWindow i.fa-key { font-size: 3rem; color: #f6b83e; margin-bottom: 1rem; }
+#apiWindow p { font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.8; line-height: 1.5; }
+.api-input {
+width: 100%; padding: 1rem 1.2rem; border-radius: 30px;
+border: 1px solid #4b6a8a; background: #0b1a2e; color: white;
+font-size: 1rem; margin-bottom: 1rem; text-align: center;
+}
+.api-input:focus { outline: none; border-color: #f6b83e; }
+
+/* Main Screener Styles */
+#mainScreener { display: none; }
+.header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.api-status { font-size: 0.75rem; background: #1b3450; padding: 0.4rem 1rem; border-radius: 30px; border: 1px solid #4caf5055; color: #4caf50; display:flex; align-items:center; gap:0.4rem;}
+.change-api-btn { font-size: 0.75rem; background: transparent; border: 1px solid #ef9a9a; color: #ef9a9a; padding: 0.3rem 0.8rem; border-radius: 30px; cursor: pointer; }
+
+.btn {
+background: #f6b83e; border: none; padding: 0.8rem 1.5rem; border-radius: 30px;
+font-weight: bold; color: #0b1a2e; cursor: pointer; transition: 0.2s;
+display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; font-size: 1.1rem;
+}
+.btn:active { transform: scale(0.95); }
+
+/* Search Section */
+.search-section { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.search-section input { flex: 1; padding: 0.8rem 1.2rem; border-radius: 30px; border: 1px solid #4b6a8a; background: #0b1a2e; color: white; font-size: 1rem; }
+.search-section input:focus { outline: none; border-color: #f6b83e; }
+.search-section button { width: auto; font-size: 1rem; padding: 0.8rem 1.5rem; }
+
+/* Highlight Banner for Depth */
+.highlight-banner { 
+background: linear-gradient(45deg, #1f3b57, #1a2f44); 
+border-left: 4px solid #f6b83e; 
+padding: 1.2rem; 
+border-radius: 10px; 
+margin-bottom: 1.5rem; 
+box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+.highlight-banner h4 { color: #f6b83e; margin-bottom: 0.5rem; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+.stock-grid { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; }
+.stock-card {
+background: rgba(12, 27, 45, 0.8); border-radius: 1.2rem; padding: 1.2rem;
+border: 1px solid rgba(255, 255, 255, 0.05); position: relative;
+}
+.stock-card h3 { font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; }
+.sector-tag { font-size: 0.7rem; background: #1f3b57; padding: 0.2rem 0.8rem; border-radius: 30px; color: #b6d0e8; }
+.trade-box {
+background: #0b1f32; padding: 1rem; border-radius: 1rem;
+border: 1px solid #2f4b6b; font-size: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem;
+}
+.ltp-banner { background: #1a2f44; padding: 0.5rem; border-radius: 30px; text-align: center; font-weight: bold; font-size: 1.1rem; border: 1px solid #f6b83e55;}
+.trade-row { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem; }
+.trade-row:last-child { border-bottom: none; padding-bottom: 0; }
+.buy { color: #8bc34a; } .target { color: #ffd54f; } .sell { color: #ef9a9a; }
+.status-text { text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #8bc34a; }
+</style>
 </head>
 <body>
 
 <div class="card">
-    <h1><i class="fas fa-chart-pie"></i> Day Best 5 Screener</h1>
-    
-    <!-- API Entry Window -->
-    <div id="apiWindow">
-        <i class="fas fa-key"></i>
-        <h2>API Key നൽകുക</h2>
-        <p>മുഴുവൻ മാർക്കറ്റും സ്കാൻ ചെയ്ത് മികച്ച 5 ഓഹരികൾ കണ്ടെത്താൻ ഒരു ലൈവ് ഡാറ്റാ API (ഉദാ: Finnhub / Alpha Vantage) ആവശ്യമാണ്.</p>
-        <input type="password" id="apiKeyInput" class="api-input" placeholder="Enter your API Key here...">
-        <button class="btn" id="saveApiBtn"><i class="fas fa-save"></i> Save & Continue</button>
-    </div>
+<h1><i class="fas fa-chart-pie"></i> Day Best Screener</h1>
 
-    <!-- Main Screener Window -->
-    <div id="mainScreener">
-        <div class="header-actions">
-            <span class="api-status"><i class="fas fa-check-circle"></i> API Active</span>
-            <button class="change-api-btn" id="changeApiBtn"><i class="fas fa-cog"></i> Change Key</button>
-        </div>
-        
-        <div class="subhead">സെക്ടർ റൊട്ടേഷൻ അടിസ്ഥാനമാക്കിയുള്ള ഇന്നത്തെ മികച്ച 5 ഷെയറുകൾ</div>
-        
-        <button class="btn" id="scanBtn"><i class="fas fa-search-dollar"></i> Find Day Best 5</button>
-        <div id="statusMsg" class="status-text"></div>
-        <div class="stock-grid" id="stockGrid"></div>
-    </div>
+<!-- API Entry Window -->
+<div id="apiWindow">
+<i class="fas fa-key"></i>
+<h2>API Key നൽകുക</h2>
+<p>മുഴുവൻ മാർക്കറ്റും സ്കാൻ ചെയ്ത് മികച്ച ഓഹരികൾ കണ്ടെത്താൻ ഒരു ലൈവ് ഡാറ്റാ API ആവശ്യമാണ്.</p>
+<input type="password" id="apiKeyInput" class="api-input" placeholder="Enter your API Key here...">
+<button class="btn" id="saveApiBtn"><i class="fas fa-save"></i> Save & Continue</button>
+</div>
+
+<!-- Main Screener Window -->
+<div id="mainScreener">
+<div class="header-actions">
+<span class="api-status"><i class="fas fa-check-circle"></i> API Active</span>
+<button class="change-api-btn" id="changeApiBtn"><i class="fas fa-cog"></i> Change Key</button>
+</div>
+
+<!-- Single Stock Search Section -->
+<div class="search-section">
+<input type="text" id="singleStockInput" placeholder="ഷെയറിന്റെ പേര് നൽകുക (ഉദാ: RELIANCE)">
+<button class="btn" id="singleStockBtn"><i class="fas fa-search"></i> Search</button>
+</div>
+<div id="singleStockResult"></div>
+
+<!-- Highest Market Depth Banner (Hidden by default) -->
+<div id="highestDepthBanner" class="highlight-banner" style="display:none;"></div>
+
+<div class="subhead">സെക്ടർ റൊട്ടേഷൻ അടിസ്ഥാനമാക്കിയുള്ള ഇന്നത്തെ മികച്ച 5 ഷെയറുകൾ</div>
+<button class="btn" id="scanBtn"><i class="fas fa-search-dollar"></i> Find Day Best 5</button>
+<div id="statusMsg" class="status-text"></div>
+<div class="stock-grid" id="stockGrid"></div>
+</div>
 </div>
 
 <script>
-    (function() {
-        "use strict";
-        
-        const apiWindow = document.getElementById('apiWindow');
-        const mainScreener = document.getElementById('mainScreener');
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        const saveApiBtn = document.getElementById('saveApiBtn');
-        const changeApiBtn = document.getElementById('changeApiBtn');
-        
-        // 1. Check for existing API Key on page load
-        function checkApiKey() {
-            const savedKey = localStorage.getItem('screenerApiKey');
-            if (savedKey) {
-                apiWindow.style.display = 'none';
-                mainScreener.style.display = 'block';
-            } else {
-                apiWindow.style.display = 'block';
-                mainScreener.style.display = 'none';
-            }
-        }
-        
-        // 2. Save API Key
-        saveApiBtn.addEventListener('click', () => {
-            const key = apiKeyInput.value.trim();
-            if (key) {
-                localStorage.setItem('screenerApiKey', key);
-                apiKeyInput.value = ''; // clear input
-                checkApiKey(); // switch windows
-            } else {
-                alert('ദയവായി സാധുവായ ഒരു API Key നൽകുക!');
-            }
-        });
-        
-        // 3. Change/Remove API Key
-        changeApiBtn.addEventListener('click', () => {
-            if(confirm('നിലവിലെ API Key മായ്ക്കണമെന്നുണ്ടോ?')) {
-                localStorage.removeItem('screenerApiKey');
-                document.getElementById('stockGrid').innerHTML = ''; // clear previous results
-                document.getElementById('statusMsg').innerHTML = '';
-                checkApiKey();
-            }
-        });
+(function() {
+"use strict";
+const apiWindow = document.getElementById('apiWindow');
+const mainScreener = document.getElementById('mainScreener');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const saveApiBtn = document.getElementById('saveApiBtn');
+const changeApiBtn = document.getElementById('changeApiBtn');
 
-        // Initialize view
-        checkApiKey();
+function checkApiKey() {
+const savedKey = localStorage.getItem('screenerApiKey');
+if (savedKey) {
+apiWindow.style.display = 'none';
+mainScreener.style.display = 'block';
+} else {
+apiWindow.style.display = 'block';
+mainScreener.style.display = 'none';
+}
+}
 
-        // ----------------------------------------------------
-        // Screener Logic (Using the provided API key)
-        // ----------------------------------------------------
-        
-        // Dummy universe for demonstration. In a real scenario with a premium API, 
-        // you would scan hundreds of stocks to find the top 5 dynamically.
-        const DYNAMIC_UNIVERSE = [
-            { symbol: "TATASTEEL", name: "Tata Steel", sector: "Metals" },
-            { symbol: "SBIN", name: "State Bank of India", sector: "Banking" },
-            { symbol: "BHARTIARTL", name: "Bharti Airtel", sector: "Telecom" },
-            { symbol: "M&M", name: "Mahindra & Mahindra", sector: "Auto" },
-            { symbol: "ONGC", name: "ONGC", sector: "Energy" }
-        ];
+saveApiBtn.addEventListener('click', () => {
+const key = apiKeyInput.value.trim();
+if (key) {
+localStorage.setItem('screenerApiKey', key);
+apiKeyInput.value = ''; 
+checkApiKey(); 
+} else {
+alert('ദയവായി സാധുവായ ഒരു API Key നൽകുക!');
+}
+});
 
-        function fmtINR(n) { return n ? '₹ ' + n.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : '—'; }
+changeApiBtn.addEventListener('click', () => {
+if(confirm('നിലവിലെ API Key മായ്ക്കണമെന്നുണ്ടോ?')) {
+localStorage.removeItem('screenerApiKey');
+document.getElementById('stockGrid').innerHTML = ''; 
+document.getElementById('statusMsg').innerHTML = '';
+document.getElementById('singleStockResult').innerHTML = '';
+document.getElementById('highestDepthBanner').style.display = 'none';
+checkApiKey();
+}
+});
 
-        async function runScreener() {
-            const btn = document.getElementById('scanBtn');
-            const grid = document.getElementById('stockGrid');
-            const status = document.getElementById('statusMsg');
-            const userApiKey = localStorage.getItem('screenerApiKey');
-            
-            if(!userApiKey) return; // safety check
+checkApiKey();
 
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> സ്കാൻ ചെയ്യുന്നു...';
-            btn.disabled = true;
-            grid.innerHTML = '';
-            status.innerHTML = '';
+const DYNAMIC_UNIVERSE = [
+{ symbol: "TATASTEEL", name: "Tata Steel", sector: "Metals" },
+{ symbol: "SBIN", name: "State Bank of India", sector: "Banking" },
+{ symbol: "BHARTIARTL", name: "Bharti Airtel", sector: "Telecom" },
+{ symbol: "M&M", name: "Mahindra & Mahindra", sector: "Auto" },
+{ symbol: "ONGC", name: "ONGC", sector: "Energy" }
+];
 
-            // Simulate API fetching using the stored key
-            // Example real API call format: fetch(`https://finnhub.io/api/v1/quote?symbol=${c.symbol}.NS&token=${userApiKey}`)
-            
-            let html = '';
-            
-            // Simulating network delay and API response processing
-            setTimeout(() => {
-                DYNAMIC_UNIVERSE.forEach(s => {
-                    // Simulated logic for Entry, Target, SL
-                    const mockPrice = Math.floor(Math.random() * 1000) + 200; 
-                    const entry = mockPrice * 0.985;
-                    const target = mockPrice * 1.08;
-                    const sl = mockPrice * 0.94;
+function fmtINR(n) { return n ? '₹ ' + n.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : '—'; }
 
-                    html += `
-                        <div class="stock-card">
-                            <h3><span>${s.symbol}</span> <span class="sector-tag">${s.sector}</span></h3>
-                            <div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 1rem;">${s.name}</div>
-                            
-                            <div class="trade-box">
-                                <div class="ltp-banner">LTP: ${fmtINR(mockPrice)}</div>
-                                <div class="trade-row buy"><span><i class="fas fa-arrow-right"></i> Entry Range:</span> <strong>${fmtINR(entry)} - ${fmtINR(mockPrice)}</strong></div>
-                                <div class="trade-row target"><span><i class="fas fa-flag-checkered"></i> Target:</span> <strong>${fmtINR(target)}</strong></div>
-                                <div class="trade-row sell"><span><i class="fas fa-stop-circle"></i> Stop Loss:</span> <strong>${fmtINR(sl)}</strong></div>
-                            </div>
-                        </div>
-                    `;
-                });
+// Single Stock Search Function
+document.getElementById('singleStockBtn').addEventListener('click', () => {
+const inputVal = document.getElementById('singleStockInput').value.trim().toUpperCase();
+const resultDiv = document.getElementById('singleStockResult');
 
-                grid.innerHTML = html;
-                btn.innerHTML = '<i class="fas fa-search-dollar"></i> Find Day Best 5';
-                btn.disabled = false;
-                
-                const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-                status.innerHTML = `<i class="fas fa-check-circle"></i> അവസാനം അപ്ഡേറ്റ് ചെയ്തത്: ${timeStr} (Using API)`;
-            }, 1500); // simulated 1.5s delay
-        }
+if(!inputVal) {
+alert('ദയവായി ഒരു ഷെയറിന്റെ പേര് നൽകുക!');
+return;
+}
 
-        document.getElementById('scanBtn').addEventListener('click', runScreener);
-    })();
+resultDiv.innerHTML = '<div style="text-align:center; padding: 1rem;"><i class="fas fa-spinner fa-spin"></i> ലൈവ് ഡാറ്റ എടുക്കുന്നു...</div>';
+
+// സിമുലേറ്റ് ചെയ്യുന്ന API കാൾ 
+setTimeout(() => {
+const mockPrice = Math.floor(Math.random() * 2500) + 150;
+const entry = mockPrice * 0.99;
+const target = mockPrice * 1.05;
+const sl = mockPrice * 0.95;
+
+resultDiv.innerHTML = `
+<div class="stock-card" style="margin-bottom: 2rem; border: 1px solid #f6b83e;">
+<h3><span>${inputVal}</span> <span class="sector-tag">Searched Result</span></h3>
+<div class="trade-box">
+<div class="ltp-banner" style="background:#f6b83e; color:#0b1a2e;">LTP: ${fmtINR(mockPrice)}</div>
+<div class="trade-row buy"><span><i class="fas fa-arrow-right"></i> Entry Range:</span> <strong>${fmtINR(entry)} - ${fmtINR(mockPrice)}</strong></div>
+<div class="trade-row target"><span><i class="fas fa-flag-checkered"></i> Target:</span> <strong>${fmtINR(target)}</strong></div>
+<div class="trade-row sell"><span><i class="fas fa-stop-circle"></i> Stop Loss:</span> <strong>${fmtINR(sl)}</strong></div>
+</div>
+</div>
+`;
+}, 1200);
+});
+
+// Best 5 Screener Function
+async function runScreener() {
+const btn = document.getElementById('scanBtn');
+const grid = document.getElementById('stockGrid');
+const status = document.getElementById('statusMsg');
+const depthBanner = document.getElementById('highestDepthBanner');
+
+btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> സ്കാൻ ചെയ്യുന്നു...';
+btn.disabled = true;
+grid.innerHTML = '';
+status.innerHTML = '';
+depthBanner.style.display = 'none';
+
+setTimeout(() => {
+// Highest Depth Highlight Logic
+const topDepthStock = DYNAMIC_UNIVERSE[Math.floor(Math.random() * DYNAMIC_UNIVERSE.length)];
+const mockVolume = (Math.random() * 10 + 2).toFixed(2); // Mock volume in millions
+
+depthBanner.style.display = 'block';
+depthBanner.innerHTML = `
+<h4><i class="fas fa-water"></i> Highest Market Depth (Most Active)</h4>
+<p style="font-size: 1.1rem; margin-top: 0.5rem;">
+<strong>Stock:</strong> <span style="color:#fff;">${topDepthStock.symbol}</span> | 
+<strong>Sector:</strong> <span style="color:#fff;">${topDepthStock.sector}</span>
+</p>
+<p style="font-size: 0.85rem; opacity:0.8; margin-top:0.5rem;">
+ഇന്ന് മാർക്കറ്റിൽ ഏറ്റവും കൂടുതൽ ട്രേഡിംഗ് വോളിയം (${mockVolume}M) രേഖപ്പെടുത്തിയിരിക്കുന്ന വിഭാഗം.
+</p>
+`;
+
+let html = '';
+DYNAMIC_UNIVERSE.forEach(s => {
+const mockPrice = Math.floor(Math.random() * 1000) + 200;
+const entry = mockPrice * 0.985;
+const target = mockPrice * 1.08;
+const sl = mockPrice * 0.94;
+
+html += `
+<div class="stock-card">
+<h3><span>${s.symbol}</span> <span class="sector-tag">${s.sector}</span></h3>
+<div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 1rem;">${s.name}</div>
+<div class="trade-box">
+<div class="ltp-banner">LTP: ${fmtINR(mockPrice)}</div>
+<div class="trade-row buy"><span><i class="fas fa-arrow-right"></i> Entry Range:</span> <strong>${fmtINR(entry)} - ${fmtINR(mockPrice)}</strong></div>
+<div class="trade-row target"><span><i class="fas fa-flag-checkered"></i> Target:</span> <strong>${fmtINR(target)}</strong></div>
+<div class="trade-row sell"><span><i class="fas fa-stop-circle"></i> Stop Loss:</span> <strong>${fmtINR(sl)}</strong></div>
+</div>
+</div>
+`;
+});
+
+grid.innerHTML = html;
+btn.innerHTML = '<i class="fas fa-search-dollar"></i> Find Day Best 5';
+btn.disabled = false;
+const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+status.innerHTML = `<i class="fas fa-check-circle"></i> അവസാനം അപ്ഡേറ്റ് ചെയ്തത്: ${timeStr} (Using API)`;
+}, 1500); 
+}
+
+document.getElementById('scanBtn').addEventListener('click', runScreener);
+})();
 </script>
 </body>
 </html>
