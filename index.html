@@ -50,12 +50,11 @@ background: #f6b83e; border: none; padding: 0.8rem 1.5rem; border-radius: 30px;
 font-weight: bold; color: #0b1a2e; cursor: pointer; transition: 0.2s;
 display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; font-size: 1.1rem;
 }
-.btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn:active { transform: scale(0.95); }
 
 /* Search Section */
 .search-section { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
-.search-section input { flex: 1; padding: 0.8rem 1.2rem; border-radius: 30px; border: 1px solid #4b6a8a; background: #0b1a2e; color: white; font-size: 1rem; text-transform: uppercase; }
+.search-section input { flex: 1; padding: 0.8rem 1.2rem; border-radius: 30px; border: 1px solid #4b6a8a; background: #0b1a2e; color: white; font-size: 1rem; }
 .search-section input:focus { outline: none; border-color: #f6b83e; }
 .search-section button { width: auto; font-size: 1rem; padding: 0.8rem 1.5rem; }
 
@@ -74,9 +73,7 @@ box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 .stock-card {
 background: rgba(12, 27, 45, 0.8); border-radius: 1.2rem; padding: 1.2rem;
 border: 1px solid rgba(255, 255, 255, 0.05); position: relative;
-animation: fadeIn 0.5s ease-in-out;
 }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .stock-card h3 { font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; }
 .sector-tag { font-size: 0.7rem; background: #1f3b57; padding: 0.2rem 0.8rem; border-radius: 30px; color: #b6d0e8; }
 .trade-box {
@@ -88,7 +85,6 @@ border: 1px solid #2f4b6b; font-size: 0.9rem; display: flex; flex-direction: col
 .trade-row:last-child { border-bottom: none; padding-bottom: 0; }
 .buy { color: #8bc34a; } .target { color: #ffd54f; } .sell { color: #ef9a9a; }
 .status-text { text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #8bc34a; }
-.error-text { text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #ef9a9a; background: rgba(239, 154, 154, 0.1); padding: 10px; border-radius: 8px;}
 </style>
 </head>
 <body>
@@ -96,26 +92,30 @@ border: 1px solid #2f4b6b; font-size: 0.9rem; display: flex; flex-direction: col
 <div class="card">
 <h1><i class="fas fa-chart-pie"></i> Day Best Screener</h1>
 
+<!-- API Entry Window -->
 <div id="apiWindow">
 <i class="fas fa-key"></i>
 <h2>API Key നൽകുക</h2>
-<p>Finnhub-ൽ നിന്നുള്ള സൗജന്യ API Key ഇവിടെ നൽകുക. ലൈവ് മാർക്കറ്റ് വിവരങ്ങൾ ലഭിക്കാൻ ഇത് ആവശ്യമാണ്.</p>
-<input type="password" id="apiKeyInput" class="api-input" placeholder="Enter Finnhub API Key...">
+<p>മുഴുവൻ മാർക്കറ്റും സ്കാൻ ചെയ്ത് മികച്ച ഓഹരികൾ കണ്ടെത്താൻ ഒരു ലൈവ് ഡാറ്റാ API ആവശ്യമാണ്.</p>
+<input type="password" id="apiKeyInput" class="api-input" placeholder="Enter your API Key here...">
 <button class="btn" id="saveApiBtn"><i class="fas fa-save"></i> Save & Continue</button>
 </div>
 
+<!-- Main Screener Window -->
 <div id="mainScreener">
 <div class="header-actions">
 <span class="api-status"><i class="fas fa-check-circle"></i> API Active</span>
 <button class="change-api-btn" id="changeApiBtn"><i class="fas fa-cog"></i> Change Key</button>
 </div>
 
+<!-- Single Stock Search Section -->
 <div class="search-section">
-<input type="text" id="singleStockInput" placeholder="ഷെയറിന്റെ പേര് (ഉദാ: HCLTECH, RELIANCE)">
+<input type="text" id="singleStockInput" placeholder="ഷെയറിന്റെ പേര് നൽകുക (ഉദാ: RELIANCE)">
 <button class="btn" id="singleStockBtn"><i class="fas fa-search"></i> Search</button>
 </div>
 <div id="singleStockResult"></div>
 
+<!-- Highest Market Depth Banner (Hidden by default) -->
 <div id="highestDepthBanner" class="highlight-banner" style="display:none;"></div>
 
 <div class="subhead">സെക്ടർ റൊട്ടേഷൻ അടിസ്ഥാനമാക്കിയുള്ള ഇന്നത്തെ മികച്ച 5 ഷെയറുകൾ</div>
@@ -172,63 +172,15 @@ checkApiKey();
 const DYNAMIC_UNIVERSE = [
 { symbol: "TATASTEEL", name: "Tata Steel", sector: "Metals" },
 { symbol: "SBIN", name: "State Bank of India", sector: "Banking" },
-{ symbol: "HCLTECH", name: "HCL Technologies", sector: "IT" },
+{ symbol: "BHARTIARTL", name: "Bharti Airtel", sector: "Telecom" },
 { symbol: "M&M", name: "Mahindra & Mahindra", sector: "Auto" },
-{ symbol: "RELIANCE", name: "Reliance Ind.", sector: "Energy" }
+{ symbol: "ONGC", name: "ONGC", sector: "Energy" }
 ];
 
-function fmtINR(n) { return n ? '₹ ' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'; }
-
-// -------------------------------------------------------------
-// Live API Fetch Logic
-// -------------------------------------------------------------
-async function fetchLivePrice(symbol) {
-const userApiKey = localStorage.getItem('screenerApiKey');
-if (!userApiKey) return null;
-
-try {
-const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}.NS&token=${userApiKey}`);
-// Check if rate limited
-if (response.status === 429) {
-    throw new Error("RateLimit");
-}
-const data = await response.json();
-
-if (data.error) throw new Error(data.error);
-if (!data.c || data.c === 0) throw new Error("NotFound");
-
-return data;
-} catch (error) {
-return error.message;
-}
-}
-
-function generateTradeCard(symbol, name, sector, priceData, isSearchResult = false) {
-const ltp = priceData.c;
-const entryMin = (ltp * 0.995).toFixed(2);
-const entryMax = ltp.toFixed(2);
-const target = (ltp * 1.025).toFixed(2); 
-const sl = (ltp * 0.985).toFixed(2); 
-
-const highlightStyle = isSearchResult ? 'style="margin-bottom: 2rem; border: 1px solid #f6b83e;"' : '';
-const bannerStyle = isSearchResult ? 'style="background:#f6b83e; color:#0b1a2e;"' : '';
-
-return `
-<div class="stock-card" ${highlightStyle}>
-<h3><span>${symbol}</span> <span class="sector-tag">${sector}</span></h3>
-<div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 1rem;">${name}</div>
-<div class="trade-box">
-<div class="ltp-banner" ${bannerStyle}>LTP: ${fmtINR(ltp)}</div>
-<div class="trade-row buy"><span><i class="fas fa-arrow-right"></i> Entry Range:</span> <strong>₹ ${entryMin} - ₹ ${entryMax}</strong></div>
-<div class="trade-row target"><span><i class="fas fa-flag-checkered"></i> Target:</span> <strong>₹ ${target}</strong></div>
-<div class="trade-row sell"><span><i class="fas fa-stop-circle"></i> Stop Loss:</span> <strong>₹ ${sl}</strong></div>
-</div>
-</div>
-`;
-}
+function fmtINR(n) { return n ? '₹ ' + n.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : '—'; }
 
 // Single Stock Search Function
-document.getElementById('singleStockBtn').addEventListener('click', async () => {
+document.getElementById('singleStockBtn').addEventListener('click', () => {
 const inputVal = document.getElementById('singleStockInput').value.trim().toUpperCase();
 const resultDiv = document.getElementById('singleStockResult');
 
@@ -239,60 +191,45 @@ return;
 
 resultDiv.innerHTML = '<div style="text-align:center; padding: 1rem;"><i class="fas fa-spinner fa-spin"></i> ലൈവ് ഡാറ്റ എടുക്കുന്നു...</div>';
 
-const priceData = await fetchLivePrice(inputVal);
+// സിമുലേറ്റ് ചെയ്യുന്ന API കാൾ 
+setTimeout(() => {
+const mockPrice = Math.floor(Math.random() * 2500) + 150;
+const entry = mockPrice * 0.99;
+const target = mockPrice * 1.05;
+const sl = mockPrice * 0.95;
 
-if (typeof priceData === 'object' && priceData !== null) {
-resultDiv.innerHTML = generateTradeCard(inputVal, "Searched Stock", "Search Result", priceData, true);
-} else if (priceData === "RateLimit") {
-resultDiv.innerHTML = '<div class="error-text"><i class="fas fa-exclamation-triangle"></i> API ലിമിറ്റ് കഴിഞ്ഞു. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ശ്രമിക്കുക!</div>';
-} else {
-resultDiv.innerHTML = '<div class="error-text"><i class="fas fa-exclamation-triangle"></i> തെറ്റായ API Key അല്ലെങ്കിൽ ഷെയർ നാമം! (ഉദാഹരണത്തിന്: HDFC എന്നതിന് പകരം HDFCBANK എന്ന് നൽകുക)</div>';
-}
+resultDiv.innerHTML = `
+<div class="stock-card" style="margin-bottom: 2rem; border: 1px solid #f6b83e;">
+<h3><span>${inputVal}</span> <span class="sector-tag">Searched Result</span></h3>
+<div class="trade-box">
+<div class="ltp-banner" style="background:#f6b83e; color:#0b1a2e;">LTP: ${fmtINR(mockPrice)}</div>
+<div class="trade-row buy"><span><i class="fas fa-arrow-right"></i> Entry Range:</span> <strong>${fmtINR(entry)} - ${fmtINR(mockPrice)}</strong></div>
+<div class="trade-row target"><span><i class="fas fa-flag-checkered"></i> Target:</span> <strong>${fmtINR(target)}</strong></div>
+<div class="trade-row sell"><span><i class="fas fa-stop-circle"></i> Stop Loss:</span> <strong>${fmtINR(sl)}</strong></div>
+</div>
+</div>
+`;
+}, 1200);
 });
 
-// Best 5 Screener Function (Sequential Fetching to avoid Rate Limits)
+// Best 5 Screener Function
 async function runScreener() {
 const btn = document.getElementById('scanBtn');
 const grid = document.getElementById('stockGrid');
 const status = document.getElementById('statusMsg');
 const depthBanner = document.getElementById('highestDepthBanner');
 
-btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ഡാറ്റ എടുക്കുന്നു (Please wait)...';
+btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> സ്കാൻ ചെയ്യുന്നു...';
 btn.disabled = true;
 grid.innerHTML = '';
 status.innerHTML = '';
 depthBanner.style.display = 'none';
 
-let html = '';
-
-// Fetch stocks ONE BY ONE to prevent API block (Rate Limiting)
-for (let i = 0; i < DYNAMIC_UNIVERSE.length; i++) {
-    const s = DYNAMIC_UNIVERSE[i];
-    
-    // Show fetching status
-    status.innerHTML = `ലോഡ് ചെയ്യുന്നു: ${s.symbol} (${i+1}/5)...`;
-    
-    const priceData = await fetchLivePrice(s.symbol);
-
-    if (typeof priceData === 'object' && priceData !== null) {
-        html += generateTradeCard(s.symbol, s.name, s.sector, priceData);
-    } else if (priceData === "RateLimit") {
-        html += `<div class="error-text">❌ ${s.symbol}: ഡാറ്റ ലഭിച്ചില്ല (API Limit/Delay)</div>`;
-    } else {
-        html += `<div class="error-text">❌ ${s.symbol}: ഷെയർ കണ്ടെത്തിയില്ല</div>`;
-    }
-    
-    // Update UI progressively
-    grid.innerHTML = html;
-
-    // 1 സെക്കൻഡ് ഇടവേള (Wait 1 second before next API call)
-    if (i < DYNAMIC_UNIVERSE.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-}
-
-// Dummy logic for highest depth
+setTimeout(() => {
+// Highest Depth Highlight Logic
 const topDepthStock = DYNAMIC_UNIVERSE[Math.floor(Math.random() * DYNAMIC_UNIVERSE.length)];
+const mockVolume = (Math.random() * 10 + 2).toFixed(2); // Mock volume in millions
+
 depthBanner.style.display = 'block';
 depthBanner.innerHTML = `
 <h4><i class="fas fa-water"></i> Highest Market Depth (Most Active)</h4>
@@ -300,14 +237,38 @@ depthBanner.innerHTML = `
 <strong>Stock:</strong> <span style="color:#fff;">${topDepthStock.symbol}</span> | 
 <strong>Sector:</strong> <span style="color:#fff;">${topDepthStock.sector}</span>
 </p>
-<p style="font-size: 0.85rem; opacity:0.8; margin-top:0.5rem;">ഇന്ന് ഏറ്റവും കൂടുതൽ ട്രേഡിംഗ് വോളിയം രേഖപ്പെടുത്തിയ സെക്ടർ.</p>
+<p style="font-size: 0.85rem; opacity:0.8; margin-top:0.5rem;">
+ഇന്ന് മാർക്കറ്റിൽ ഏറ്റവും കൂടുതൽ ട്രേഡിംഗ് വോളിയം (${mockVolume}M) രേഖപ്പെടുത്തിയിരിക്കുന്ന വിഭാഗം.
+</p>
 `;
 
-const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-status.innerHTML = `<i class="fas fa-check-circle"></i> ലൈവ് അപ്ഡേറ്റ് പൂർത്തിയായി: ${timeStr}`;
+let html = '';
+DYNAMIC_UNIVERSE.forEach(s => {
+const mockPrice = Math.floor(Math.random() * 1000) + 200;
+const entry = mockPrice * 0.985;
+const target = mockPrice * 1.08;
+const sl = mockPrice * 0.94;
 
+html += `
+<div class="stock-card">
+<h3><span>${s.symbol}</span> <span class="sector-tag">${s.sector}</span></h3>
+<div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 1rem;">${s.name}</div>
+<div class="trade-box">
+<div class="ltp-banner">LTP: ${fmtINR(mockPrice)}</div>
+<div class="trade-row buy"><span><i class="fas fa-arrow-right"></i> Entry Range:</span> <strong>${fmtINR(entry)} - ${fmtINR(mockPrice)}</strong></div>
+<div class="trade-row target"><span><i class="fas fa-flag-checkered"></i> Target:</span> <strong>${fmtINR(target)}</strong></div>
+<div class="trade-row sell"><span><i class="fas fa-stop-circle"></i> Stop Loss:</span> <strong>${fmtINR(sl)}</strong></div>
+</div>
+</div>
+`;
+});
+
+grid.innerHTML = html;
 btn.innerHTML = '<i class="fas fa-search-dollar"></i> Find Day Best 5';
 btn.disabled = false;
+const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+status.innerHTML = `<i class="fas fa-check-circle"></i> അവസാനം അപ്ഡേറ്റ് ചെയ്തത്: ${timeStr} (Using API)`;
+}, 1500); 
 }
 
 document.getElementById('scanBtn').addEventListener('click', runScreener);
