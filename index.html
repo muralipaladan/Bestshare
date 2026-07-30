@@ -13,7 +13,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: auto;
         }
         h1 {
@@ -78,6 +78,9 @@
         }
         button.action-btn:hover { background-color: #0369a1; }
         .loading { display: none; text-align: center; color: #fbbf24; font-weight: bold; margin-top: 15px; }
+        .table-responsive {
+            overflow-x: auto;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -85,13 +88,17 @@
             background-color: #1e293b;
             border-radius: 8px;
             overflow: hidden;
+            font-size: 14px;
         }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #334155; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #334155; }
         th { background-color: #334155; color: #38bdf8; }
         tr:hover { background-color: #334155; }
         .positive { color: #4ade80; font-weight: bold; }
         .negative { color: #f87171; font-weight: bold; }
-        .top-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 30px; }
+        .sl-text { color: #f87171; font-weight: bold; }
+        .res-text { color: #fbbf24; font-weight: bold; }
+        .sup-text { color: #38bdf8; font-weight: bold; }
+        .top-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px; margin-top: 30px; }
         .card { background: #1e293b; padding: 20px; border-radius: 8px; border-left: 5px solid #38bdf8; }
         .disclaimer { margin-top: 40px; padding: 15px; background-color: #451a03; border: 1px solid #78350f; color: #fde68a; border-radius: 8px; text-align: center; font-weight: bold; }
     </style>
@@ -100,7 +107,7 @@
 
 <div class="container">
     <h1>Google Sheet Live Technical Analyzer</h1>
-    <p class="subtitle">Direct Google Finance Data Integration</p>
+    <p class="subtitle">Direct Google Finance Data Integration with Pivot Technical Levels</p>
 
     <div class="mode-container">
         <button class="tab-btn active" id="btn-tab-url" onclick="switchMode('url')">Automatic / Link Fetch</button>
@@ -124,29 +131,34 @@
     </div>
 
     <div id="result-area" style="display: none;">
-        <h2>Composite Score Ranking Table</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Stock Symbol</th>
-                    <th>LTP (₹)</th>
-                    <th>Change %</th>
-                    <th>Momentum</th>
-                    <th>Trend</th>
-                    <th>Volatility Flag</th>
-                    <th>Composite Score</th>
-                </tr>
-            </thead>
-            <tbody id="table-body"></tbody>
-        </table>
+        <h2>Composite Score & Key Pivot Levels Ranking</h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Stock Symbol</th>
+                        <th>LTP (₹)</th>
+                        <th>Change %</th>
+                        <th>Support (S1)</th>
+                        <th>Resistance (R1)</th>
+                        <th>Stop Loss (SL)</th>
+                        <th>Momentum</th>
+                        <th>Trend</th>
+                        <th>Volatility</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
 
-        <h2 style="margin-top: 40px;">Top 3 Stocks Analysis</h2>
+        <h2 style="margin-top: 40px;">Top 3 Stocks Levels & Risk Analysis</h2>
         <div class="top-cards" id="top-cards"></div>
     </div>
 
     <div class="disclaimer">
-        STRICT DISCLAIMER: ഇത് "buy/sell recommendation" അല്ല, statistical ranking മാത്രം.
+        STRICT DISCLAIMER: ഇത് "buy/sell recommendation" അല്ല, Pivot statistical ranking ലെവലുകൾ മാത്രം.
     </div>
 </div>
 
@@ -201,7 +213,15 @@
 
             if (ltp === 0 || prevClose === 0) continue;
 
-            // Technical Analysis Calculations
+            // Pivot Points & Technical Levels Calculation
+            const pivot = (high + low + ltp) / 3;
+            const resistance1 = (2 * pivot) - low;
+            const support1 = (2 * pivot) - high;
+            
+            // Stop Loss calculation: 0.5% below Day Low or Support
+            const stopLoss = Math.min(low * 0.995, support1 * 0.995);
+
+            // Technical Analysis Indicators
             const changePct = ((ltp - prevClose) / prevClose) * 100;
             const openGapPct = Math.abs(((open - prevClose) / prevClose) * 100);
             const dayRangePct = low > 0 ? ((high - low) / low) * 100 : 0;
@@ -223,6 +243,9 @@
                 name,
                 ltp: ltp.toFixed(2),
                 changePct: changePct.toFixed(2),
+                support: support1.toFixed(2),
+                resistance: resistance1.toFixed(2),
+                stopLoss: stopLoss.toFixed(2),
                 momentum: momentum.toFixed(1),
                 trend: trend.toFixed(1),
                 volatility: volatilityFlag,
@@ -247,6 +270,9 @@
                     <td><b>${item.name}</b></td>
                     <td>₹${item.ltp}</td>
                     <td class="${changeClass}">${item.changePct}%</td>
+                    <td class="sup-text">₹${item.support}</td>
+                    <td class="res-text">₹${item.resistance}</td>
+                    <td class="sl-text">₹${item.stopLoss}</td>
                     <td>${item.momentum}</td>
                     <td>${item.trend}</td>
                     <td>${item.volatility}</td>
@@ -262,8 +288,10 @@
             topCards.innerHTML += `
                 <div class="card">
                     <h3>#${i+1} ${item.name} (Score: ${item.compositeScore})</h3>
-                    <p><b>കാരണം:</b> ലൈവ് പ്രൈസ് ആക്ഷനും ഉയർന്ന ട്രെൻഡ് സ്കോറും (${item.trend}/10) നൽകിയ പെർഫോമൻസ്.</p>
-                    <p><b>റിസ്ക്:</b> വിപണിയിലെ ഇൻട്രാഡേ മാറ്റങ്ങൾ കാരണം ഹ്രസ്വകാല തിരുത്തലുകൾക്ക് സാധ്യതയുണ്ട്. Stop Loss പാലിക്കുക.</p>
+                    <p><b>LTP:</b> ₹${item.ltp} | <b>Change:</b> ${item.changePct}%</p>
+                    <p><b>Day Resistance (R1):</b> <span class="res-text">₹${item.resistance}</span></p>
+                    <p><b>Day Support (S1):</b> <span class="sup-text">₹${item.support}</span></p>
+                    <p><b>Recommended Stop Loss (SL):</b> <span class="sl-text">₹${item.stopLoss}</span></p>
                 </div>
             `;
         }
@@ -280,14 +308,12 @@
         document.getElementById('result-area').style.display = 'none';
 
         try {
-            // First attempt: Direct fetch
             let response = await fetch(rawUrl).catch(() => null);
             let csvText = "";
 
             if (response && response.ok) {
                 csvText = await response.text();
             } else {
-                // Fallback attempt via CORS Proxy if direct fetch is blocked by browser local execution
                 const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl)}`;
                 const proxyResponse = await fetch(proxyUrl);
                 if (!proxyResponse.ok) throw new Error("Fetch failed");
