@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheet Live Technical Analyzer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #38bdf8;
+            margin-bottom: 5px;
+        }
+        p.subtitle {
+            text-align: center;
+            color: #94a3b8;
+            margin-bottom: 25px;
+        }
+        .mode-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            background-color: #334155;
+            color: #94a3b8;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .tab-btn.active {
+            background-color: #0284c7;
+            color: white;
+        }
+        .input-card {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        input[type="text"], textarea {
+            width: 90%;
+            max-width: 700px;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        textarea { height: 120px; font-family: monospace; }
+        button.action-btn {
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button.action-btn:hover { background-color: #0369a1; }
+        .loading { display: none; text-align: center; color: #fbbf24; font-weight: bold; margin-top: 15px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background-color: #334155; color: #38bdf8; }
+        tr:hover { background-color: #334155; }
+        .positive { color: #4ade80; font-weight: bold; }
+        .negative { color: #f87171; font-weight: bold; }
+        .top-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 30px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 8px; border-left: 5px solid #38bdf8; }
+        .disclaimer { margin-top: 40px; padding: 15px; background-color: #451a03; border: 1px solid #78350f; color: #fde68a; border-radius: 8px; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Google Sheet Live Technical Analyzer</h1>
+    <p class="subtitle">Direct Google Finance Data Integration</p>
+
+    <div class="mode-container">
+        <button class="tab-btn active" id="btn-tab-url" onclick="switchMode('url')">Automatic / Link Fetch</button>
+        <button class="tab-btn" id="btn-tab-paste" onclick="switchMode('paste')">Direct Copy-Paste</button>
+    </div>
+
+    <!-- Mode 1: URL Fetch (Default Auto Loaded) -->
+    <div class="input-card" id="mode-url">
+        <input type="text" id="sheetUrl" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTYfsq465bB2pSHGi3GvZihmZFgHcmpJk08VHl25QdPfaoLkiV2IxrU99cMVQ0flyYALgAgoigSzyGw/pub?gid=0&single=true&output=csv">
+        <br>
+        <button class="action-btn" onclick="fetchAndAnalyzeURL()">Fetch Data Again</button>
+        <div id="loading" class="loading">ഗൂഗിൾ ഷീറ്റിൽ നിന്ന് ഡാറ്റ ലോഡ് ചെയ്യുന്നു... കാത്തിരിക്കൂ...</div>
+    </div>
+
+    <!-- Mode 2: Direct Paste -->
+    <div class="input-card" id="mode-paste" style="display: none;">
+        <p style="color: #94a3b8; margin-top: 0;">Google Sheet-ലെ കോളം A2 മുതൽ H16 വരെയുള്ള ഭാഗം കോപ്പി ചെയ്ത് താഴെ പേസ്റ്റ് ചെയ്യുക:</p>
+        <textarea id="pastedData" placeholder="A2:H16 വരെയുള്ള ഡാറ്റ ഇവിടെ പേസ്റ്റ് ചെയ്യുക..."></textarea>
+        <br>
+        <button class="action-btn" onclick="analyzePastedData()">Analyze Data Now</button>
+    </div>
+
+    <div id="result-area" style="display: none;">
+        <h2>Composite Score Ranking Table</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Stock Symbol</th>
+                    <th>LTP (₹)</th>
+                    <th>Change %</th>
+                    <th>Momentum</th>
+                    <th>Trend</th>
+                    <th>Volatility Flag</th>
+                    <th>Composite Score</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+
+        <h2 style="margin-top: 40px;">Top 3 Stocks Analysis</h2>
+        <div class="top-cards" id="top-cards"></div>
+    </div>
+
+    <div class="disclaimer">
+        STRICT DISCLAIMER: ഇത് "buy/sell recommendation" അല്ല, statistical ranking മാത്രം.
+    </div>
+</div>
+
+<script>
+    // Automatically trigger fetch when page loads
+    window.addEventListener('DOMContentLoaded', () => {
+        fetchAndAnalyzeURL();
+    });
+
+    function switchMode(mode) {
+        document.getElementById('mode-url').style.display = mode === 'url' ? 'block' : 'none';
+        document.getElementById('mode-paste').style.display = mode === 'paste' ? 'block' : 'none';
+        document.getElementById('btn-tab-url').className = 'tab-btn ' + (mode === 'url' ? 'active' : '');
+        document.getElementById('btn-tab-paste').className = 'tab-btn ' + (mode === 'paste' ? 'active' : '');
+    }
+
+    function cleanNum(val) {
+        if (!val) return 0;
+        const cleaned = val.toString().replace(/[₹,"]/g, '').trim();
+        return parseFloat(cleaned) || 0;
+    }
+
+    function parseTextToRows(text) {
+        const lines = text.trim().split(/\r?\n/);
+        const rows = [];
+        for (let line of lines) {
+            if (!line.trim()) continue;
+            let cols = line.includes('\t') ? line.split('\t') : line.split(',');
+            if (cols.length >= 8) {
+                rows.push(cols);
+            }
+        }
+        return rows;
+    }
+
+    function processAndDisplay(rows) {
+        const results = [];
+
+        for (let cols of rows) {
+            const name = cols[0].replace(/["]/g, '').replace('NSE:', '').replace('BSE:', '').trim();
+            
+            // Skip Header Row if present
+            if (name.toLowerCase().includes('symbol')) continue;
+
+            const ltp = cleanNum(cols[1]);
+            const prevClose = cleanNum(cols[2]);
+            const open = cleanNum(cols[3]);
+            const high = cleanNum(cols[4]);
+            const low = cleanNum(cols[5]);
+            const volume = cleanNum(cols[6]);
+            const avgVolume = cleanNum(cols[7]);
+
+            if (ltp === 0 || prevClose === 0) continue;
+
+            // Technical Analysis Calculations
+            const changePct = ((ltp - prevClose) / prevClose) * 100;
+            const openGapPct = Math.abs(((open - prevClose) / prevClose) * 100);
+            const dayRangePct = low > 0 ? ((high - low) / low) * 100 : 0;
+
+            let volSurge = (avgVolume > 0 && volume > (avgVolume * 1.5)) ? 3.0 : 0.0;
+            let momentum = Math.min(10, Math.max(1, (openGapPct * 2) + volSurge + (changePct > 0 ? changePct * 0.8 : 0)));
+
+            let trend = 5.0;
+            if (ltp > open && ltp > prevClose) trend = 8.5;
+            else if (ltp > prevClose) trend = 6.5;
+            else trend = 3.5;
+
+            const volatilityFlag = dayRangePct > 2.5 ? "High Volatile" : "Normal";
+            const volumeWeight = (avgVolume > 0 && volume > avgVolume) ? 8.5 : 4.5;
+
+            const compositeScore = ((momentum * 0.4) + (trend * 0.4) + (volumeWeight * 0.2)).toFixed(1);
+
+            results.push({
+                name,
+                ltp: ltp.toFixed(2),
+                changePct: changePct.toFixed(2),
+                momentum: momentum.toFixed(1),
+                trend: trend.toFixed(1),
+                volatility: volatilityFlag,
+                compositeScore: parseFloat(compositeScore)
+            });
+        }
+
+        if (results.length === 0) {
+            alert("ഡാറ്റ വായിക്കാൻ സാധിച്ചില്ല. ഗൂഗിൾ ഷീറ്റിൽ വരികൾ ഉണ്ടെന്ന് ഉറപ്പുവരുത്തുക.");
+            return;
+        }
+
+        results.sort((a, b) => b.compositeScore - a.compositeScore);
+
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+        results.forEach((item, index) => {
+            const changeClass = item.changePct >= 0 ? 'positive' : 'negative';
+            tbody.innerHTML += `
+                <tr>
+                    <td><b>#${index + 1}</b></td>
+                    <td><b>${item.name}</b></td>
+                    <td>₹${item.ltp}</td>
+                    <td class="${changeClass}">${item.changePct}%</td>
+                    <td>${item.momentum}</td>
+                    <td>${item.trend}</td>
+                    <td>${item.volatility}</td>
+                    <td><b style="color:#38bdf8;">${item.compositeScore}</b></td>
+                </tr>
+            `;
+        });
+
+        const topCards = document.getElementById('top-cards');
+        topCards.innerHTML = '';
+        for(let i = 0; i < Math.min(3, results.length); i++) {
+            const item = results[i];
+            topCards.innerHTML += `
+                <div class="card">
+                    <h3>#${i+1} ${item.name} (Score: ${item.compositeScore})</h3>
+                    <p><b>കാരണം:</b> ലൈവ് പ്രൈസ് ആക്ഷനും ഉയർന്ന ട്രെൻഡ് സ്കോറും (${item.trend}/10) നൽകിയ പെർഫോമൻസ്.</p>
+                    <p><b>റിസ്ക്:</b> വിപണിയിലെ ഇൻട്രാഡേ മാറ്റങ്ങൾ കാരണം ഹ്രസ്വകാല തിരുത്തലുകൾക്ക് സാധ്യതയുണ്ട്. Stop Loss പാലിക്കുക.</p>
+                </div>
+            `;
+        }
+
+        document.getElementById('result-area').style.display = 'block';
+    }
+
+    async function fetchAndAnalyzeURL() {
+        const rawUrl = document.getElementById('sheetUrl').value.trim();
+        if (!rawUrl) return;
+
+        const loadingDiv = document.getElementById('loading');
+        loadingDiv.style.display = 'block';
+        document.getElementById('result-area').style.display = 'none';
+
+        try {
+            // First attempt: Direct fetch
+            let response = await fetch(rawUrl).catch(() => null);
+            let csvText = "";
+
+            if (response && response.ok) {
+                csvText = await response.text();
+            } else {
+                // Fallback attempt via CORS Proxy if direct fetch is blocked by browser local execution
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl)}`;
+                const proxyResponse = await fetch(proxyUrl);
+                if (!proxyResponse.ok) throw new Error("Fetch failed");
+                csvText = await proxyResponse.text();
+            }
+            
+            loadingDiv.style.display = 'none';
+            const rows = parseTextToRows(csvText);
+            processAndDisplay(rows);
+
+        } catch (err) {
+            console.error(err);
+            loadingDiv.style.display = 'none';
+            alert("ഡാറ്റ തനിയെ ലോഡ് ചെയ്യാൻ സാധിച്ചില്ല. ബ്രൗസർ സുരക്ഷാ തടസ്സം നിൽക്കുന്നുണ്ടെങ്കിൽ 'Direct Copy-Paste' ടാബ് ഉപയോഗിക്കുക.");
+        }
+    }
+
+    function analyzePastedData() {
+        const text = document.getElementById('pastedData').value.trim();
+        if (!text) {
+            alert("ദയവായി ഗൂഗിൾ ഷീറ്റിലെ ഡാറ്റ ബോക്സിലേക്ക് പേസ്റ്റ് ചെയ്യുക!");
+            return;
+        }
+        const rows = parseTextToRows(text);
+        processAndDisplay(rows);
+    }
+</script>
+
+</body>
+</html>
