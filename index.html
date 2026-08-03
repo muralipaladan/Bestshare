@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Sheet Live Technical Analyzer</title>
+    <title>Google Sheet Pro Technical Analyzer</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -13,7 +13,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 1300px;
+            max-width: 1400px;
             margin: auto;
         }
         h1 {
@@ -78,9 +78,7 @@
         }
         button.action-btn:hover { background-color: #0369a1; }
         .loading { display: none; text-align: center; color: #fbbf24; font-weight: bold; margin-top: 15px; }
-        .table-responsive {
-            overflow-x: auto;
-        }
+        .table-responsive { overflow-x: auto; }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -106,15 +104,15 @@
 <body>
 
 <div class="container">
-    <h1>Google Sheet Live Technical Analyzer</h1>
-    <p class="subtitle">Direct Google Finance Data Integration with Pivot Technical Levels</p>
+    <h1>Pro Technical Analyzer (Pivot Levels)</h1>
+    <p class="subtitle">Live Breakouts & Precise Trading Levels based on Open, High, Low, Close</p>
 
     <div class="mode-container">
         <button class="tab-btn active" id="btn-tab-url" onclick="switchMode('url')">Automatic / Link Fetch</button>
         <button class="tab-btn" id="btn-tab-paste" onclick="switchMode('paste')">Direct Copy-Paste</button>
     </div>
 
-    <!-- Mode 1: URL Fetch (Default Auto Loaded) -->
+    <!-- Mode 1: URL Fetch -->
     <div class="input-card" id="mode-url">
         <input type="text" id="sheetUrl" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTYfsq465bB2pSHGi3GvZihmZFgHcmpJk08VHl25QdPfaoLkiV2IxrU99cMVQ0flyYALgAgoigSzyGw/pub?gid=0&single=true&output=csv">
         <br>
@@ -124,46 +122,44 @@
 
     <!-- Mode 2: Direct Paste -->
     <div class="input-card" id="mode-paste" style="display: none;">
-        <p style="color: #94a3b8; margin-top: 0;">Google Sheet-ലെ കോളം A2 മുതൽ H16 വരെയുള്ള ഭാഗം കോപ്പി ചെയ്ത് താഴെ പേസ്റ്റ് ചെയ്യുക:</p>
-        <textarea id="pastedData" placeholder="A2:H16 വരെയുള്ള ഡാറ്റ ഇവിടെ പേസ്റ്റ് ചെയ്യുക..."></textarea>
+        <p style="color: #94a3b8; margin-top: 0;">Google Sheet-ലെ കോളം A2 മുതൽ M വരെ കോപ്പി ചെയ്ത് താഴെ പേസ്റ്റ് ചെയ്യുക:</p>
+        <textarea id="pastedData" placeholder="A2:M വരെയുള്ള ഡാറ്റ ഇവിടെ പേസ്റ്റ് ചെയ്യുക..."></textarea>
         <br>
         <button class="action-btn" onclick="analyzePastedData()">Analyze Data Now</button>
     </div>
 
     <div id="result-area" style="display: none;">
-        <h2>Composite Score & Key Pivot Levels Ranking</h2>
+        <h2>Top Stocks with Trading Levels</h2>
         <div class="table-responsive">
             <table>
                 <thead>
                     <tr>
-                        <th>Rank</th>
-                        <th>Stock Symbol</th>
+                        <th>Symbol</th>
                         <th>LTP (₹)</th>
                         <th>Change %</th>
+                        <th>Pivot Point</th>
                         <th>Support (S1)</th>
                         <th>Resistance (R1)</th>
-                        <th>Stop Loss (SL)</th>
-                        <th>Momentum</th>
+                        <th>Entry Price</th>
+                        <th>Target</th>
+                        <th>Stop Loss</th>
                         <th>Trend</th>
-                        <th>Volatility</th>
-                        <th>Score</th>
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
             </table>
         </div>
 
-        <h2 style="margin-top: 40px;">Top 3 Stocks Levels & Risk Analysis</h2>
+        <h2 style="margin-top: 40px;">Top 3 Day Best Trades</h2>
         <div class="top-cards" id="top-cards"></div>
     </div>
 
     <div class="disclaimer">
-        STRICT DISCLAIMER: ഇത് "buy/sell recommendation" അല്ല, Pivot statistical ranking ലെവലുകൾ മാത്രം.
+        ശ്രദ്ധിക്കുക: ഇവിടെ നൽകിയിരിക്കുന്ന Entry, Target, SL എന്നിവ Pivot Point കാൽക്കുലേഷൻ വഴിയുള്ളതാണ്. ഇത് ട്രേഡിങ്ങിന് സഹായകമാകുന്ന സൂചകങ്ങൾ മാത്രമാണ്.
     </div>
 </div>
 
 <script>
-    // Automatically trigger fetch when page loads
     window.addEventListener('DOMContentLoaded', () => {
         fetchAndAnalyzeURL();
     });
@@ -187,7 +183,8 @@
         for (let line of lines) {
             if (!line.trim()) continue;
             let cols = line.includes('\t') ? line.split('\t') : line.split(',');
-            if (cols.length >= 8) {
+            // We now require at least 13 columns (A to M)
+            if (cols.length >= 13) { 
                 rows.push(cols);
             }
         }
@@ -200,65 +197,79 @@
         for (let cols of rows) {
             const name = cols[0].replace(/["]/g, '').replace('NSE:', '').replace('BSE:', '').trim();
             
-            // Skip Header Row if present
-            if (name.toLowerCase().includes('symbol')) continue;
+            // Skip Header Row
+            if (name.toLowerCase().includes('symbol') || name === '') continue;
 
             const ltp = cleanNum(cols[1]);
-            const prevClose = cleanNum(cols[2]);
-            const open = cleanNum(cols[3]);
-            const high = cleanNum(cols[4]);
-            const low = cleanNum(cols[5]);
-            const volume = cleanNum(cols[6]);
-            const avgVolume = cleanNum(cols[7]);
-
-            if (ltp === 0 || prevClose === 0) continue;
-
-            // Pivot Points & Technical Levels Calculation
-            const pivot = (high + low + ltp) / 3;
-            const resistance1 = (2 * pivot) - low;
-            const support1 = (2 * pivot) - high;
+            const changePct = cleanNum(cols[3]);
+            const volume = cleanNum(cols[4]);
             
-            // Stop Loss calculation: 0.5% below Day Low or Support
-            const stopLoss = Math.min(low * 0.995, support1 * 0.995);
+            // പുതിയ കോളങ്ങളിൽ നിന്നുള്ള ഡാറ്റ
+            const dayOpen = cleanNum(cols[9]);
+            const dayHigh = cleanNum(cols[10]);
+            const dayLow = cleanNum(cols[11]);
+            const prevClose = cleanNum(cols[12]);
 
-            // Technical Analysis Indicators
-            const changePct = ((ltp - prevClose) / prevClose) * 100;
-            const openGapPct = Math.abs(((open - prevClose) / prevClose) * 100);
-            const dayRangePct = low > 0 ? ((high - low) / low) * 100 : 0;
+            if (ltp === 0 || dayHigh === 0 || dayLow === 0) continue;
 
-            let volSurge = (avgVolume > 0 && volume > (avgVolume * 1.5)) ? 3.0 : 0.0;
-            let momentum = Math.min(10, Math.max(1, (openGapPct * 2) + volSurge + (changePct > 0 ? changePct * 0.8 : 0)));
+            // Pivot Point Calculations
+            const pivot = (dayHigh + dayLow + ltp) / 3;
+            const r1 = (2 * pivot) - dayLow;
+            const s1 = (2 * pivot) - dayHigh;
+            const r2 = pivot + (dayHigh - dayLow);
+            const s2 = pivot - (dayHigh - dayLow);
 
-            let trend = 5.0;
-            if (ltp > open && ltp > prevClose) trend = 8.5;
-            else if (ltp > prevClose) trend = 6.5;
-            else trend = 3.5;
+            // Trend Identification
+            let trend = "Neutral ➖";
+            let score = 50 + (changePct * 5);
+            
+            if (ltp > pivot && ltp > dayOpen) {
+                trend = "Bullish 🟢";
+                score += 15;
+            } else if (ltp < pivot && ltp < dayOpen) {
+                trend = "Bearish 🔴";
+                score -= 15;
+            }
 
-            const volatilityFlag = dayRangePct > 2.5 ? "High Volatile" : "Normal";
-            const volumeWeight = (avgVolume > 0 && volume > avgVolume) ? 8.5 : 4.5;
-
-            const compositeScore = ((momentum * 0.4) + (trend * 0.4) + (volumeWeight * 0.2)).toFixed(1);
+            // Precise Trading Levels
+            let entryPrice, targetPrice, stopLoss;
+            
+            if (trend.includes("Bullish")) {
+                entryPrice = ltp; // നിലവിലെ വിലയിൽ എൻട്രി
+                targetPrice = (ltp < r1) ? r1 : r2; // ടാർഗെറ്റ് റെസിസ്റ്റൻസ് 1 അല്ലെങ്കിൽ 2
+                stopLoss = s1; // സ്റ്റോപ്പ് ലോസ് സപ്പോർട്ട് 1
+            } else if (trend.includes("Bearish")) {
+                entryPrice = ltp;
+                targetPrice = (ltp > s1) ? s1 : s2;
+                stopLoss = r1;
+            } else {
+                entryPrice = ltp;
+                targetPrice = r1;
+                stopLoss = s1;
+            }
 
             results.push({
                 name,
-                ltp: ltp.toFixed(2),
-                changePct: changePct.toFixed(2),
-                support: support1.toFixed(2),
-                resistance: resistance1.toFixed(2),
-                stopLoss: stopLoss.toFixed(2),
-                momentum: momentum.toFixed(1),
-                trend: trend.toFixed(1),
-                volatility: volatilityFlag,
-                compositeScore: parseFloat(compositeScore)
+                ltp: ltp,
+                changePct: changePct,
+                pivot: pivot,
+                s1: s1,
+                r1: r1,
+                entry: entryPrice,
+                target: targetPrice,
+                sl: Math.min(stopLoss, entryPrice * 0.995), // സുരക്ഷയ്ക്കായി പരമാവധി 0.5% റിസ്ക്
+                trend: trend,
+                score: score
             });
         }
 
         if (results.length === 0) {
-            alert("ഡാറ്റ വായിക്കാൻ സാധിച്ചില്ല. ഗൂഗിൾ ഷീറ്റിൽ വരികൾ ഉണ്ടെന്ന് ഉറപ്പുവരുത്തുക.");
+            alert("ഡാറ്റ വായിക്കാൻ സാധിച്ചില്ല. ഗൂഗിൾ ഷീറ്റിലെ A മുതൽ M വരെയുള്ള ഡാറ്റ തന്നെയാണോ ഉപയോഗിച്ചത് എന്ന് പരിശോധിക്കുക.");
             return;
         }
 
-        results.sort((a, b) => b.compositeScore - a.compositeScore);
+        // Sort by Score for best Momentum Stocks
+        results.sort((a, b) => b.score - a.score);
 
         const tbody = document.getElementById('table-body');
         tbody.innerHTML = '';
@@ -266,32 +277,33 @@
             const changeClass = item.changePct >= 0 ? 'positive' : 'negative';
             tbody.innerHTML += `
                 <tr>
-                    <td><b>#${index + 1}</b></td>
                     <td><b>${item.name}</b></td>
-                    <td>₹${item.ltp}</td>
-                    <td class="${changeClass}">${item.changePct}%</td>
-                    <td class="sup-text">₹${item.support}</td>
-                    <td class="res-text">₹${item.resistance}</td>
-                    <td class="sl-text">₹${item.stopLoss}</td>
-                    <td>${item.momentum}</td>
+                    <td>₹${item.ltp.toFixed(2)}</td>
+                    <td class="${changeClass}">${item.changePct.toFixed(2)}%</td>
+                    <td>₹${item.pivot.toFixed(2)}</td>
+                    <td class="sup-text">₹${item.s1.toFixed(2)}</td>
+                    <td class="res-text">₹${item.r1.toFixed(2)}</td>
+                    <td><b>₹${item.entry.toFixed(2)}</b></td>
+                    <td class="res-text">₹${item.target.toFixed(2)}</td>
+                    <td class="sl-text">₹${item.sl.toFixed(2)}</td>
                     <td>${item.trend}</td>
-                    <td>${item.volatility}</td>
-                    <td><b style="color:#38bdf8;">${item.compositeScore}</b></td>
                 </tr>
             `;
         });
 
+        // Top 3 Trading Cards with Exact Levels
         const topCards = document.getElementById('top-cards');
         topCards.innerHTML = '';
         for(let i = 0; i < Math.min(3, results.length); i++) {
             const item = results[i];
             topCards.innerHTML += `
                 <div class="card">
-                    <h3>#${i+1} ${item.name} (Score: ${item.compositeScore})</h3>
-                    <p><b>LTP:</b> ₹${item.ltp} | <b>Change:</b> ${item.changePct}%</p>
-                    <p><b>Day Resistance (R1):</b> <span class="res-text">₹${item.resistance}</span></p>
-                    <p><b>Day Support (S1):</b> <span class="sup-text">₹${item.support}</span></p>
-                    <p><b>Recommended Stop Loss (SL):</b> <span class="sl-text">₹${item.stopLoss}</span></p>
+                    <h3>#${i+1} ${item.name}</h3>
+                    <p><b>Current Trend:</b> ${item.trend}</p>
+                    <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
+                    <p><b>Buy/Entry Price:</b> <span class="sup-text">₹${item.entry.toFixed(2)}</span></p>
+                    <p><b>Target (Exit):</b> <span class="res-text">₹${item.target.toFixed(2)}</span></p>
+                    <p><b>Stop Loss (SL):</b> <span class="sl-text">₹${item.sl.toFixed(2)}</span></p>
                 </div>
             `;
         }
