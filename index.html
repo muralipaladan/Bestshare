@@ -105,7 +105,7 @@
 
 <div class="container">
     <h1>Pro Technical Analyzer (Pivot Levels)</h1>
-    <p class="subtitle">Live Breakouts & Precise Trading Levels based on Open, High, Low, Close</p>
+    <p class="subtitle">Live Breakouts & Precise Trading Levels based on Open, High, Low, Close (Auto-Refreshing)</p>
 
     <div class="mode-container">
         <button class="tab-btn active" id="btn-tab-url" onclick="switchMode('url')">Automatic / Link Fetch</button>
@@ -116,7 +116,7 @@
     <div class="input-card" id="mode-url">
         <input type="text" id="sheetUrl" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTYfsq465bB2pSHGi3GvZihmZFgHcmpJk08VHl25QdPfaoLkiV2IxrU99cMVQ0flyYALgAgoigSzyGw/pub?gid=0&single=true&output=csv">
         <br>
-        <button class="action-btn" onclick="fetchAndAnalyzeURL()">Fetch Data Again</button>
+        <button class="action-btn" onclick="fetchAndAnalyzeURL()">Fetch Data Now</button>
         <div id="loading" class="loading">ഗൂഗിൾ ഷീറ്റിൽ നിന്ന് ഡാറ്റ ലോഡ് ചെയ്യുന്നു... കാത്തിരിക്കൂ...</div>
     </div>
 
@@ -155,13 +155,16 @@
     </div>
 
     <div class="disclaimer">
-        ശ്രദ്ധിക്കുക: ഇവിടെ നൽകിയിരിക്കുന്ന Entry, Target, SL എന്നിവ Pivot Point കാൽക്കുലേഷൻ വഴിയുള്ളതാണ്. ഇത് ട്രേഡിങ്ങിന് സഹായകമാകുന്ന സൂചകങ്ങൾ മാത്രമാണ്.
+        ശ്രദ്ധിക്കുക: ഇവിടെ നൽകിയിരിക്കുന്ന Entry, Target, SL എന്നിവ Pivot Point കാൽക്കുലേഷൻ വഴിയുള്ളതാണ്. ഇത് ട്രേഡിങ്ങിന് സഹായകമാകുന്ന സൂചകങ്ങൾ മാത്രമാണ്. ഗൂഗിൾ ഫിനാൻസിലെ ഡാറ്റയ്ക്ക് മാർക്കറ്റുമായി ചെറിയ സമയ വ്യത്യാസം (Delay) ഉണ്ടായേക്കാം.
     </div>
 </div>
 
 <script>
     window.addEventListener('DOMContentLoaded', () => {
-        fetchAndAnalyzeURL();
+        fetchAndAnalyzeURL(); // പേജ് തുറക്കുമ്പോൾ ആദ്യം ഡാറ്റ എടുക്കാൻ
+        
+        // ഓരോ 1 മിനിറ്റിലും (60000 മില്ലിസെക്കൻഡ്) തനിയെ ഡാറ്റ റീഫ്രഷ് ആകാൻ
+        setInterval(fetchAndAnalyzeURL, 60000); 
     });
 
     function switchMode(mode) {
@@ -235,9 +238,9 @@
             let entryPrice, targetPrice, stopLoss;
             
             if (trend.includes("Bullish")) {
-                entryPrice = ltp; // നിലവിലെ വിലയിൽ എൻട്രി
-                targetPrice = (ltp < r1) ? r1 : r2; // ടാർഗെറ്റ് റെസിസ്റ്റൻസ് 1 അല്ലെങ്കിൽ 2
-                stopLoss = s1; // സ്റ്റോപ്പ് ലോസ് സപ്പോർട്ട് 1
+                entryPrice = ltp; 
+                targetPrice = (ltp < r1) ? r1 : r2; 
+                stopLoss = s1; 
             } else if (trend.includes("Bearish")) {
                 entryPrice = ltp;
                 targetPrice = (ltp > s1) ? s1 : s2;
