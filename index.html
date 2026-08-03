@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Sheet Pro Technical Analyzer</title>
+    <title>Fibonacci & Sector Analyzer</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -78,11 +78,24 @@
         }
         button.action-btn:hover { background-color: #0369a1; }
         .loading { display: none; text-align: center; color: #fbbf24; font-weight: bold; margin-top: 15px; }
+        
+        .sector-panel {
+            display: flex;
+            justify-content: space-between;
+            background-color: #1e293b;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+        .sector-box h3 { margin: 0 0 10px 0; font-size: 16px; color: #94a3b8; }
+        .sector-name { font-size: 20px; font-weight: bold; }
+
         .table-responsive { overflow-x: auto; }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 10px;
             background-color: #1e293b;
             border-radius: 8px;
             overflow: hidden;
@@ -104,8 +117,8 @@
 <body>
 
 <div class="container">
-    <h1>Pro Technical Analyzer (Pivot Levels)</h1>
-    <p class="subtitle">Live Breakouts & Precise Trading Levels based on Open, High, Low, Close (Auto-Refreshing)</p>
+    <h1>Nifty 50 Fibonacci & Sector Analyzer</h1>
+    <p class="subtitle">Live Sector Rotation & Fibonacci Retracement Levels</p>
 
     <div class="mode-container">
         <button class="tab-btn active" id="btn-tab-url" onclick="switchMode('url')">Automatic / Link Fetch</button>
@@ -129,17 +142,30 @@
     </div>
 
     <div id="result-area" style="display: none;">
-        <h2>Top Stocks with Trading Levels</h2>
+        
+        <!-- Sector Analysis Panel -->
+        <div class="sector-panel">
+            <div class="sector-box">
+                <h3>🚀 Leading Sector (മുന്നിൽ)</h3>
+                <div id="top-sector" class="sector-name positive">Loading...</div>
+            </div>
+            <div class="sector-box" style="text-align: right;">
+                <h3>⚠️ Lagging Sector (പിന്നിൽ)</h3>
+                <div id="bottom-sector" class="sector-name negative">Loading...</div>
+            </div>
+        </div>
+
+        <h2>Stock Fibonacci Levels & Sector Info</h2>
         <div class="table-responsive">
             <table>
                 <thead>
                     <tr>
                         <th>Symbol</th>
+                        <th>Sector</th>
                         <th>LTP (₹)</th>
                         <th>Change %</th>
-                        <th>Pivot Point</th>
-                        <th>Support (S1)</th>
-                        <th>Resistance (R1)</th>
+                        <th>Fib Support (S1)</th>
+                        <th>Fib Resist. (R1)</th>
                         <th>Entry Price</th>
                         <th>Target</th>
                         <th>Stop Loss</th>
@@ -150,20 +176,29 @@
             </table>
         </div>
 
-        <h2 style="margin-top: 40px;">Top 3 Day Best Trades</h2>
+        <h2 style="margin-top: 40px;">Day Best 3 Trades (Fibonacci Based)</h2>
         <div class="top-cards" id="top-cards"></div>
     </div>
 
-    <div class="disclaimer">
-        ശ്രദ്ധിക്കുക: ഇവിടെ നൽകിയിരിക്കുന്ന Entry, Target, SL എന്നിവ Pivot Point കാൽക്കുലേഷൻ വഴിയുള്ളതാണ്. ഇത് ട്രേഡിങ്ങിന് സഹായകമാകുന്ന സൂചകങ്ങൾ മാത്രമാണ്. ഗൂഗിൾ ഫിനാൻസിലെ ഡാറ്റയ്ക്ക് മാർക്കറ്റുമായി ചെറിയ സമയ വ്യത്യാസം (Delay) ഉണ്ടായേക്കാം.
-    </div>
 </div>
 
 <script>
+    // നിഫ്റ്റി 50 ഓഹരികളുടെ സെക്ടർ വിവരങ്ങൾ
+    const niftySectors = {
+        "RELIANCE": "Energy", "ONGC": "Energy", "COALINDIA": "Energy", "NTPC": "Energy", "POWERGRID": "Energy", "BPCL": "Energy",
+        "TCS": "IT", "INFY": "IT", "HCLTECH": "IT", "WIPRO": "IT", "TECHM": "IT", "LTIM": "IT",
+        "HDFCBANK": "Financial Services", "ICICIBANK": "Financial Services", "AXISBANK": "Financial Services", "KOTAKBANK": "Financial Services", "SBIN": "Financial Services", "BAJFINANCE": "Financial Services", "BAJAJFINSV": "Financial Services", "HDFCLIFE": "Financial Services", "SBILIFE": "Financial Services", "INDUSINDBK": "Financial Services",
+        "HINDUNILVR": "FMCG", "ITC": "FMCG", "NESTLEIND": "FMCG", "BRITANNIA": "FMCG", "TATACONSUM": "FMCG",
+        "TATAMOTORS": "Automobile", "M&M": "Automobile", "MARUTI": "Automobile", "BAJAJ-AUTO": "Automobile", "EICHERMOT": "Automobile", "HEROMOTOCO": "Automobile",
+        "SUNPHARMA": "Healthcare", "CIPLA": "Healthcare", "DRREDDY": "Healthcare", "APOLLOHOSP": "Healthcare", "DIVISLAB": "Healthcare",
+        "TATASTEEL": "Metals & Mining", "HINDALCO": "Metals & Mining", "JSWSTEEL": "Metals & Mining", "ADANIENT": "Metals & Mining",
+        "ASIANPAINT": "Consumer Durables", "TITAN": "Consumer Durables",
+        "LT": "Construction", "GRASIM": "Construction Materials", "ULTRACEMCO": "Construction Materials",
+        "BHARTIARTL": "Telecommunication", "ADANIPORTS": "Services", "BEL": "Capital Goods"
+    };
+
     window.addEventListener('DOMContentLoaded', () => {
-        fetchAndAnalyzeURL(); // പേജ് തുറക്കുമ്പോൾ ആദ്യം ഡാറ്റ എടുക്കാൻ
-        
-        // ഓരോ 1 മിനിറ്റിലും (60000 മില്ലിസെക്കൻഡ്) തനിയെ ഡാറ്റ റീഫ്രഷ് ആകാൻ
+        fetchAndAnalyzeURL(); 
         setInterval(fetchAndAnalyzeURL, 60000); 
     });
 
@@ -186,7 +221,6 @@
         for (let line of lines) {
             if (!line.trim()) continue;
             let cols = line.includes('\t') ? line.split('\t') : line.split(',');
-            // We now require at least 13 columns (A to M)
             if (cols.length >= 13) { 
                 rows.push(cols);
             }
@@ -196,33 +230,41 @@
 
     function processAndDisplay(rows) {
         const results = [];
+        const sectorData = {};
 
         for (let cols of rows) {
             const name = cols[0].replace(/["]/g, '').replace('NSE:', '').replace('BSE:', '').trim();
-            
-            // Skip Header Row
             if (name.toLowerCase().includes('symbol') || name === '') continue;
 
             const ltp = cleanNum(cols[1]);
             const changePct = cleanNum(cols[3]);
-            const volume = cleanNum(cols[4]);
-            
-            // പുതിയ കോളങ്ങളിൽ നിന്നുള്ള ഡാറ്റ
             const dayOpen = cleanNum(cols[9]);
             const dayHigh = cleanNum(cols[10]);
             const dayLow = cleanNum(cols[11]);
-            const prevClose = cleanNum(cols[12]);
-
+            
             if (ltp === 0 || dayHigh === 0 || dayLow === 0) continue;
 
-            // Pivot Point Calculations
-            const pivot = (dayHigh + dayLow + ltp) / 3;
-            const r1 = (2 * pivot) - dayLow;
-            const s1 = (2 * pivot) - dayHigh;
-            const r2 = pivot + (dayHigh - dayLow);
-            const s2 = pivot - (dayHigh - dayLow);
+            const sector = niftySectors[name] || "Others";
 
-            // Trend Identification
+            // സെക്ടർ ശരാശരി കണക്കാക്കാൻ ഡാറ്റ സൂക്ഷിക്കുന്നു
+            if (!sectorData[sector]) {
+                sectorData[sector] = { totalChange: 0, count: 0 };
+            }
+            sectorData[sector].totalChange += changePct;
+            sectorData[sector].count += 1;
+
+            // Fibonacci Calculations
+            // Pivot = (High + Low + Close) / 3
+            const pivot = (dayHigh + dayLow + ltp) / 3;
+            const range = dayHigh - dayLow;
+            
+            // Fib Levels (0.382 & 0.618)
+            const r1 = pivot + (range * 0.382);
+            const r2 = pivot + (range * 0.618);
+            const s1 = pivot - (range * 0.382);
+            const s2 = pivot - (range * 0.618);
+
+            // Trend & Score
             let trend = "Neutral ➖";
             let score = 50 + (changePct * 5);
             
@@ -234,7 +276,7 @@
                 score -= 15;
             }
 
-            // Precise Trading Levels
+            // Precise Fibonacci Trading Levels
             let entryPrice, targetPrice, stopLoss;
             
             if (trend.includes("Bullish")) {
@@ -252,38 +294,54 @@
             }
 
             results.push({
-                name,
-                ltp: ltp,
-                changePct: changePct,
-                pivot: pivot,
-                s1: s1,
-                r1: r1,
-                entry: entryPrice,
-                target: targetPrice,
-                sl: Math.min(stopLoss, entryPrice * 0.995), // സുരക്ഷയ്ക്കായി പരമാവധി 0.5% റിസ്ക്
-                trend: trend,
-                score: score
+                name, sector, ltp, changePct,
+                s1, r1, entry: entryPrice, target: targetPrice,
+                sl: Math.min(stopLoss, entryPrice * 0.995), 
+                trend, score
             });
         }
 
         if (results.length === 0) {
-            alert("ഡാറ്റ വായിക്കാൻ സാധിച്ചില്ല. ഗൂഗിൾ ഷീറ്റിലെ A മുതൽ M വരെയുള്ള ഡാറ്റ തന്നെയാണോ ഉപയോഗിച്ചത് എന്ന് പരിശോധിക്കുക.");
+            alert("ഡാറ്റ വായിക്കാൻ സാധിച്ചില്ല. A മുതൽ M വരെയുള്ള ഡാറ്റ തന്നെയാണോ എന്ന് ഉറപ്പുവരുത്തുക.");
             return;
         }
 
-        // Sort by Score for best Momentum Stocks
+        // സെക്ടർ റാങ്കിങ് കണ്ടുപിടിക്കുന്നു
+        const sectorAverages = [];
+        for (let sec in sectorData) {
+            if (sec !== "Others") {
+                sectorAverages.push({
+                    name: sec,
+                    avgChange: sectorData[sec].totalChange / sectorData[sec].count
+                });
+            }
+        }
+        
+        sectorAverages.sort((a, b) => b.avgChange - a.avgChange);
+        
+        if (sectorAverages.length > 0) {
+            const topSec = sectorAverages[0];
+            const botSec = sectorAverages[sectorAverages.length - 1];
+            
+            document.getElementById('top-sector').innerHTML = `${topSec.name} (${topSec.avgChange > 0 ? '+' : ''}${topSec.avgChange.toFixed(2)}%)`;
+            document.getElementById('top-sector').className = topSec.avgChange >= 0 ? "sector-name positive" : "sector-name negative";
+            
+            document.getElementById('bottom-sector').innerHTML = `${botSec.name} (${botSec.avgChange > 0 ? '+' : ''}${botSec.avgChange.toFixed(2)}%)`;
+        }
+
+        // ട്രേഡിങ്ങിനായി ഓഹരികളെ സ്കോർ അനുസരിച്ച് റാങ്ക് ചെയ്യുന്നു
         results.sort((a, b) => b.score - a.score);
 
         const tbody = document.getElementById('table-body');
         tbody.innerHTML = '';
-        results.forEach((item, index) => {
+        results.forEach((item) => {
             const changeClass = item.changePct >= 0 ? 'positive' : 'negative';
             tbody.innerHTML += `
                 <tr>
                     <td><b>${item.name}</b></td>
+                    <td style="font-size:12px; color:#94a3b8;">${item.sector}</td>
                     <td>₹${item.ltp.toFixed(2)}</td>
                     <td class="${changeClass}">${item.changePct.toFixed(2)}%</td>
-                    <td>₹${item.pivot.toFixed(2)}</td>
                     <td class="sup-text">₹${item.s1.toFixed(2)}</td>
                     <td class="res-text">₹${item.r1.toFixed(2)}</td>
                     <td><b>₹${item.entry.toFixed(2)}</b></td>
@@ -294,19 +352,19 @@
             `;
         });
 
-        // Top 3 Trading Cards with Exact Levels
+        // Top 3 Best Trades
         const topCards = document.getElementById('top-cards');
         topCards.innerHTML = '';
         for(let i = 0; i < Math.min(3, results.length); i++) {
             const item = results[i];
             topCards.innerHTML += `
                 <div class="card">
-                    <h3>#${i+1} ${item.name}</h3>
+                    <h3>#${i+1} ${item.name} <span style="font-size:12px; font-weight:normal; color:#94a3b8;">(${item.sector})</span></h3>
                     <p><b>Current Trend:</b> ${item.trend}</p>
                     <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
                     <p><b>Buy/Entry Price:</b> <span class="sup-text">₹${item.entry.toFixed(2)}</span></p>
-                    <p><b>Target (Exit):</b> <span class="res-text">₹${item.target.toFixed(2)}</span></p>
-                    <p><b>Stop Loss (SL):</b> <span class="sl-text">₹${item.sl.toFixed(2)}</span></p>
+                    <p><b>Fibonacci Target:</b> <span class="res-text">₹${item.target.toFixed(2)}</span></p>
+                    <p><b>Fibonacci Stop Loss:</b> <span class="sl-text">₹${item.sl.toFixed(2)}</span></p>
                 </div>
             `;
         }
@@ -320,8 +378,7 @@
 
         const loadingDiv = document.getElementById('loading');
         loadingDiv.style.display = 'block';
-        document.getElementById('result-area').style.display = 'none';
-
+        
         try {
             let response = await fetch(rawUrl).catch(() => null);
             let csvText = "";
@@ -342,7 +399,7 @@
         } catch (err) {
             console.error(err);
             loadingDiv.style.display = 'none';
-            alert("ഡാറ്റ തനിയെ ലോഡ് ചെയ്യാൻ സാധിച്ചില്ല. ബ്രൗസർ സുരക്ഷാ തടസ്സം നിൽക്കുന്നുണ്ടെങ്കിൽ 'Direct Copy-Paste' ടാബ് ഉപയോഗിക്കുക.");
+            alert("ഡാറ്റ തനിയെ ലോഡ് ചെയ്യാൻ സാധിച്ചില്ല. 'Direct Copy-Paste' ടാബ് ഉപയോഗിക്കുക.");
         }
     }
 
