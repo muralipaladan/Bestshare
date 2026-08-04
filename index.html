@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fibonacci & Sector Analyzer</title>
+    <title>Fibonacci Sector & Top 10 Analyzer</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -109,16 +109,17 @@
         .sl-text { color: #f87171; font-weight: bold; }
         .res-text { color: #fbbf24; font-weight: bold; }
         .sup-text { color: #38bdf8; font-weight: bold; }
-        .top-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px; margin-top: 30px; }
-        .card { background: #1e293b; padding: 20px; border-radius: 8px; border-left: 5px solid #38bdf8; }
+        .top-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 8px; border-left: 5px solid #38bdf8; position: relative;}
+        .card .rank-badge { position: absolute; top: -10px; right: -10px; background: #38bdf8; color: #0f172a; font-weight: bold; padding: 5px 12px; border-radius: 20px; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);}
         .disclaimer { margin-top: 40px; padding: 15px; background-color: #451a03; border: 1px solid #78350f; color: #fde68a; border-radius: 8px; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Nifty 50 Fibonacci & Sector Analyzer</h1>
-    <p class="subtitle">Live Sector Rotation & Fibonacci Retracement Levels</p>
+    <h1>Sector-Wise Top 10 Stocks Analyzer</h1>
+    <p class="subtitle">Live Sector Rotation & Fibonacci Trading Levels (Auto-Refreshing)</p>
 
     <div class="mode-container">
         <button class="tab-btn active" id="btn-tab-url" onclick="switchMode('url')">Automatic / Link Fetch</button>
@@ -155,7 +156,10 @@
             </div>
         </div>
 
-        <h2>Stock Fibonacci Levels & Sector Info</h2>
+        <h2 style="margin-top: 30px; color: #4ade80;">Top 10 Day Best Trades (Sector-Wise)</h2>
+        <div class="top-cards" id="top-cards"></div>
+
+        <h2 style="margin-top: 40px;">All Stocks Full Analysis</h2>
         <div class="table-responsive">
             <table>
                 <thead>
@@ -175,15 +179,13 @@
                 <tbody id="table-body"></tbody>
             </table>
         </div>
-
-        <h2 style="margin-top: 40px;">Day Best 3 Trades (Fibonacci Based)</h2>
-        <div class="top-cards" id="top-cards"></div>
     </div>
 
 </div>
 
 <script>
-    // നിഫ്റ്റി 50 ഓഹരികളുടെ സെക്ടർ വിവരങ്ങൾ
+    // കൂടുതൽ കമ്പനികൾ ഷീറ്റിൽ ചേർക്കുമ്പോൾ അവയുടെ സെക്ടറുകൾ ഇവിടെ താഴെ നൽകാവുന്നതാണ്.
+    // ഉദാഹരണത്തിന് പുതിയ ബാങ്ക് ചേർത്താൽ "FEDERALBNK": "Financial Services" എന്ന് നൽകാം.
     const niftySectors = {
         "RELIANCE": "Energy", "ONGC": "Energy", "COALINDIA": "Energy", "NTPC": "Energy", "POWERGRID": "Energy", "BPCL": "Energy",
         "TCS": "IT", "INFY": "IT", "HCLTECH": "IT", "WIPRO": "IT", "TECHM": "IT", "LTIM": "IT",
@@ -229,9 +231,10 @@
     }
 
     function processAndDisplay(rows) {
-        const results = [];
+        const rawStocks = [];
         const sectorData = {};
 
+        // ഘട്ടം 1: അടിസ്ഥാന ഡാറ്റ ശേഖരിക്കുകയും സെക്ടർ ശരാശരി കണക്കാക്കുകയും ചെയ്യുന്നു
         for (let cols of rows) {
             const name = cols[0].replace(/["]/g, '').replace('NSE:', '').replace('BSE:', '').trim();
             if (name.toLowerCase().includes('symbol') || name === '') continue;
@@ -246,82 +249,36 @@
 
             const sector = niftySectors[name] || "Others";
 
-            // സെക്ടർ ശരാശരി കണക്കാക്കാൻ ഡാറ്റ സൂക്ഷിക്കുന്നു
             if (!sectorData[sector]) {
                 sectorData[sector] = { totalChange: 0, count: 0 };
             }
             sectorData[sector].totalChange += changePct;
             sectorData[sector].count += 1;
 
-            // Fibonacci Calculations
-            // Pivot = (High + Low + Close) / 3
-            const pivot = (dayHigh + dayLow + ltp) / 3;
-            const range = dayHigh - dayLow;
-            
-            // Fib Levels (0.382 & 0.618)
-            const r1 = pivot + (range * 0.382);
-            const r2 = pivot + (range * 0.618);
-            const s1 = pivot - (range * 0.382);
-            const s2 = pivot - (range * 0.618);
-
-            // Trend & Score
-            let trend = "Neutral ➖";
-            let score = 50 + (changePct * 5);
-            
-            if (ltp > pivot && ltp > dayOpen) {
-                trend = "Bullish 🟢";
-                score += 15;
-            } else if (ltp < pivot && ltp < dayOpen) {
-                trend = "Bearish 🔴";
-                score -= 15;
-            }
-
-            // Precise Fibonacci Trading Levels
-            let entryPrice, targetPrice, stopLoss;
-            
-            if (trend.includes("Bullish")) {
-                entryPrice = ltp; 
-                targetPrice = (ltp < r1) ? r1 : r2; 
-                stopLoss = s1; 
-            } else if (trend.includes("Bearish")) {
-                entryPrice = ltp;
-                targetPrice = (ltp > s1) ? s1 : s2;
-                stopLoss = r1;
-            } else {
-                entryPrice = ltp;
-                targetPrice = r1;
-                stopLoss = s1;
-            }
-
-            results.push({
-                name, sector, ltp, changePct,
-                s1, r1, entry: entryPrice, target: targetPrice,
-                sl: Math.min(stopLoss, entryPrice * 0.995), 
-                trend, score
-            });
+            rawStocks.push({ name, sector, ltp, changePct, dayOpen, dayHigh, dayLow });
         }
 
-        if (results.length === 0) {
+        if (rawStocks.length === 0) {
             alert("ഡാറ്റ വായിക്കാൻ സാധിച്ചില്ല. A മുതൽ M വരെയുള്ള ഡാറ്റ തന്നെയാണോ എന്ന് ഉറപ്പുവരുത്തുക.");
             return;
         }
 
-        // സെക്ടർ റാങ്കിങ് കണ്ടുപിടിക്കുന്നു
-        const sectorAverages = [];
+        // സെക്ടർ ശരാശരികൾ (Sector Averages)
+        const sectorAverages = {};
+        const sectorRankList = [];
         for (let sec in sectorData) {
+            const avg = sectorData[sec].totalChange / sectorData[sec].count;
+            sectorAverages[sec] = avg;
             if (sec !== "Others") {
-                sectorAverages.push({
-                    name: sec,
-                    avgChange: sectorData[sec].totalChange / sectorData[sec].count
-                });
+                sectorRankList.push({ name: sec, avgChange: avg });
             }
         }
         
-        sectorAverages.sort((a, b) => b.avgChange - a.avgChange);
+        sectorRankList.sort((a, b) => b.avgChange - a.avgChange);
         
-        if (sectorAverages.length > 0) {
-            const topSec = sectorAverages[0];
-            const botSec = sectorAverages[sectorAverages.length - 1];
+        if (sectorRankList.length > 0) {
+            const topSec = sectorRankList[0];
+            const botSec = sectorRankList[sectorRankList.length - 1];
             
             document.getElementById('top-sector').innerHTML = `${topSec.name} (${topSec.avgChange > 0 ? '+' : ''}${topSec.avgChange.toFixed(2)}%)`;
             document.getElementById('top-sector').className = topSec.avgChange >= 0 ? "sector-name positive" : "sector-name negative";
@@ -329,9 +286,81 @@
             document.getElementById('bottom-sector').innerHTML = `${botSec.name} (${botSec.avgChange > 0 ? '+' : ''}${botSec.avgChange.toFixed(2)}%)`;
         }
 
-        // ട്രേഡിങ്ങിനായി ഓഹരികളെ സ്കോർ അനുസരിച്ച് റാങ്ക് ചെയ്യുന്നു
+        // ഘട്ടം 2: ഫിബൊനാച്ചിയും കൃത്യമായ സെക്ടർ സ്കോറിങ്ങും
+        const results = [];
+        for (let stock of rawStocks) {
+            const pivot = (stock.dayHigh + stock.dayLow + stock.ltp) / 3;
+            const range = stock.dayHigh - stock.dayLow;
+            
+            const r1 = pivot + (range * 0.382);
+            const r2 = pivot + (range * 0.618);
+            const s1 = pivot - (range * 0.382);
+            const s2 = pivot - (range * 0.618);
+
+            // അടിസ്ഥാന മൊമെന്റം സ്കോർ
+            let score = 50 + (stock.changePct * 5);
+            
+            // മുന്നിൽ നിൽക്കുന്ന സെക്ടറുകളിലെ ഓഹരികൾക്ക് മുൻഗണന നൽകാൻ (Sector Weightage)
+            const sectorBonus = (sectorAverages[stock.sector] || 0) * 8; 
+            score += sectorBonus;
+
+            let trend = "Neutral ➖";
+            if (stock.ltp > pivot && stock.ltp > stock.dayOpen) {
+                trend = "Bullish 🟢";
+                score += 15;
+            } else if (stock.ltp < pivot && stock.ltp < stock.dayOpen) {
+                trend = "Bearish 🔴";
+                score -= 15;
+            }
+
+            let entryPrice, targetPrice, stopLoss;
+            if (trend.includes("Bullish")) {
+                entryPrice = stock.ltp; 
+                targetPrice = (stock.ltp < r1) ? r1 : r2; 
+                stopLoss = s1; 
+            } else if (trend.includes("Bearish")) {
+                entryPrice = stock.ltp;
+                targetPrice = (stock.ltp > s1) ? s1 : s2;
+                stopLoss = r1;
+            } else {
+                entryPrice = stock.ltp;
+                targetPrice = r1;
+                stopLoss = s1;
+            }
+
+            results.push({
+                name: stock.name, sector: stock.sector, ltp: stock.ltp, changePct: stock.changePct,
+                s1, r1, entry: entryPrice, target: targetPrice,
+                sl: Math.min(stopLoss, entryPrice * 0.995), 
+                trend, score
+            });
+        }
+
+        // ഏറ്റവും മികച്ച സ്കോർ ഉള്ളവയെ മുകളിൽ കൊണ്ടുവരാൻ
         results.sort((a, b) => b.score - a.score);
 
+        // Top 10 ട്രേഡുകൾ കാർഡുകളായി നൽകുന്നു
+        const topCards = document.getElementById('top-cards');
+        topCards.innerHTML = '';
+        const displayCount = Math.min(10, results.length);
+        
+        for(let i = 0; i < displayCount; i++) {
+            const item = results[i];
+            topCards.innerHTML += `
+                <div class="card">
+                    <div class="rank-badge">Rank #${i+1}</div>
+                    <h3 style="margin-top:0;">${item.name}</h3>
+                    <p style="font-size:12px; color:#94a3b8; margin-top:-10px;">Sector: <b>${item.sector}</b></p>
+                    <p><b>Current Trend:</b> ${item.trend}</p>
+                    <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
+                    <p><b>Buy/Entry Price:</b> <span class="sup-text">₹${item.entry.toFixed(2)}</span></p>
+                    <p><b>Target (Exit):</b> <span class="res-text">₹${item.target.toFixed(2)}</span></p>
+                    <p><b>Stop Loss (SL):</b> <span class="sl-text">₹${item.sl.toFixed(2)}</span></p>
+                </div>
+            `;
+        }
+
+        // എല്ലാ ഓഹരികളും ടേബിളിൽ നൽകുന്നു
         const tbody = document.getElementById('table-body');
         tbody.innerHTML = '';
         results.forEach((item) => {
@@ -351,23 +380,6 @@
                 </tr>
             `;
         });
-
-        // Top 3 Best Trades
-        const topCards = document.getElementById('top-cards');
-        topCards.innerHTML = '';
-        for(let i = 0; i < Math.min(3, results.length); i++) {
-            const item = results[i];
-            topCards.innerHTML += `
-                <div class="card">
-                    <h3>#${i+1} ${item.name} <span style="font-size:12px; font-weight:normal; color:#94a3b8;">(${item.sector})</span></h3>
-                    <p><b>Current Trend:</b> ${item.trend}</p>
-                    <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
-                    <p><b>Buy/Entry Price:</b> <span class="sup-text">₹${item.entry.toFixed(2)}</span></p>
-                    <p><b>Fibonacci Target:</b> <span class="res-text">₹${item.target.toFixed(2)}</span></p>
-                    <p><b>Fibonacci Stop Loss:</b> <span class="sl-text">₹${item.sl.toFixed(2)}</span></p>
-                </div>
-            `;
-        }
 
         document.getElementById('result-area').style.display = 'block';
     }
