@@ -136,8 +136,8 @@
 
     <!-- Mode 2: Direct Paste -->
     <div class="input-card" id="mode-paste" style="display: none;">
-        <p style="color: #94a3b8; margin-top: 0;">Google Sheet-ലെ കോളം A2 മുതൽ M വരെ കോപ്പി ചെയ്ത് താഴെ പേസ്റ്റ് ചെയ്യുക:</p>
-        <textarea id="pastedData" placeholder="A2:M വരെയുള്ള ഡാറ്റ ഇവിടെ പേസ്റ്റ് ചെയ്യുക..."></textarea>
+        <p style="color: #94a3b8; margin-top: 0;">Google Sheet-ലെ കോളം A മുതൽ J വരെ (Symbol മുതൽ Pre Close വരെ) കോപ്പി ചെയ്ത് താഴെ പേസ്റ്റ് ചെയ്യുക:</p>
+        <textarea id="pastedData" placeholder="ഡാറ്റ ഇവിടെ പേസ്റ്റ് ചെയ്യുക..."></textarea>
         <br>
         <button class="action-btn" onclick="analyzePastedData()">Analyze Data Now</button>
     </div>
@@ -184,11 +184,9 @@
 </div>
 
 <script>
-    // കൂടുതൽ കമ്പനികൾ ഷീറ്റിൽ ചേർക്കുമ്പോൾ അവയുടെ സെക്ടറുകൾ ഇവിടെ താഴെ നൽകാവുന്നതാണ്.
-    // ഉദാഹരണത്തിന് പുതിയ ബാങ്ക് ചേർത്താൽ "FEDERALBNK": "Financial Services" എന്ന് നൽകാം.
     const niftySectors = {
         "RELIANCE": "Energy", "ONGC": "Energy", "COALINDIA": "Energy", "NTPC": "Energy", "POWERGRID": "Energy", "BPCL": "Energy",
-        "TCS": "IT", "INFY": "IT", "HCLTECH": "IT", "WIPRO": "IT", "TECHM": "IT", "LTIM": "IT",
+        "TCS": "IT", "INFY": "IT", "HCLTECH": "IT", "WIPRO": "IT", "TECHM": "IT", "LTIM": "IT", "COFORGE": "IT", "PERSISTENT": "IT", "MPHASIS": "IT", "KPITTECH": "IT",
         "HDFCBANK": "Financial Services", "ICICIBANK": "Financial Services", "AXISBANK": "Financial Services", "KOTAKBANK": "Financial Services", "SBIN": "Financial Services", "BAJFINANCE": "Financial Services", "BAJAJFINSV": "Financial Services", "HDFCLIFE": "Financial Services", "SBILIFE": "Financial Services", "INDUSINDBK": "Financial Services",
         "HINDUNILVR": "FMCG", "ITC": "FMCG", "NESTLEIND": "FMCG", "BRITANNIA": "FMCG", "TATACONSUM": "FMCG",
         "TATAMOTORS": "Automobile", "M&M": "Automobile", "MARUTI": "Automobile", "BAJAJ-AUTO": "Automobile", "EICHERMOT": "Automobile", "HEROMOTOCO": "Automobile",
@@ -212,7 +210,7 @@
     }
 
     function cleanNum(val) {
-        if (!val) return 0;
+        if (!val || val === "#N/A" || val.includes("N/A")) return 0;
         const cleaned = val.toString().replace(/[₹,"]/g, '').trim();
         return parseFloat(cleaned) || 0;
     }
@@ -223,7 +221,8 @@
         for (let line of lines) {
             if (!line.trim()) continue;
             let cols = line.includes('\t') ? line.split('\t') : line.split(',');
-            if (cols.length >= 13) { 
+            // പുതിയ ഷീറ്റിൽ 10 കോളങ്ങൾ (A മുതൽ J വരെ) ഉണ്ട് എന്ന് ഉറപ്പാക്കാൻ
+            if (cols.length >= 9) { 
                 rows.push(cols);
             }
         }
@@ -234,18 +233,26 @@
         const rawStocks = [];
         const sectorData = {};
 
-        // ഘട്ടം 1: അടിസ്ഥാന ഡാറ്റ ശേഖരിക്കുകയും സെക്ടർ ശരാശരി കണക്കാക്കുകയും ചെയ്യുന്നു
         for (let cols of rows) {
             const name = cols[0].replace(/["]/g, '').replace('NSE:', '').replace('BSE:', '').trim();
             if (name.toLowerCase().includes('symbol') || name === '') continue;
 
-            const ltp = cleanNum(cols[1]);
-            const changePct = cleanNum(cols[3]);
-            const dayOpen = cleanNum(cols[9]);
-            const dayHigh = cleanNum(cols[10]);
-            const dayLow = cleanNum(cols[11]);
+            // പുതിയ കോളങ്ങൾക്കനുസരിച്ചുള്ള ഇൻഡക്സുകൾ
+            const ltp = cleanNum(cols[1]); // B കോളം
+            const high52 = cleanNum(cols[2]); // C കോളം
+            const low52 = cleanNum(cols[3]); // D കോളം
+            const marketCap = cleanNum(cols[4]); // E കോളം
+            const peRatio = cleanNum(cols[5]); // F കോളം
+            const dayOpen = cleanNum(cols[6]); // G കോളം
+            const dayHigh = cleanNum(cols[7]); // H കോളം
+            const dayLow = cleanNum(cols[8]); // I കോളം
+            const preClose = cleanNum(cols[9]); // J കോളം
             
-            if (ltp === 0 || dayHigh === 0 || dayLow === 0) continue;
+            // N/A ഡാറ്റ വന്നിട്ടുണ്ടെങ്കിൽ ഒഴിവാക്കാൻ
+            if (ltp === 0 || dayHigh === 0 || dayLow === 0 || preClose === 0) continue;
+
+            // Change % തനിയെ കണ്ടെത്തുന്നു
+            const changePct = ((ltp - preClose) / preClose) * 100;
 
             const sector = niftySectors[name] || "Others";
 
@@ -259,11 +266,10 @@
         }
 
         if (rawStocks.length === 0) {
-            alert("ഡാറ്റ വായിക്കാൻ സാധിച്ചില്ല. A മുതൽ M വരെയുള്ള ഡാറ്റ തന്നെയാണോ എന്ന് ഉറപ്പുവരുത്തുക.");
+            alert("ഡാറ്റ വായിക്കാൻ സാധിച്ചില്ല. ഗൂഗിൾ ഫിനാൻസ് ഡാറ്റ ശരിയായിട്ടുണ്ടോ എന്ന് പരിശോധിക്കുക.");
             return;
         }
 
-        // സെക്ടർ ശരാശരികൾ (Sector Averages)
         const sectorAverages = {};
         const sectorRankList = [];
         for (let sec in sectorData) {
@@ -286,7 +292,6 @@
             document.getElementById('bottom-sector').innerHTML = `${botSec.name} (${botSec.avgChange > 0 ? '+' : ''}${botSec.avgChange.toFixed(2)}%)`;
         }
 
-        // ഘട്ടം 2: ഫിബൊനാച്ചിയും കൃത്യമായ സെക്ടർ സ്കോറിങ്ങും
         const results = [];
         for (let stock of rawStocks) {
             const pivot = (stock.dayHigh + stock.dayLow + stock.ltp) / 3;
@@ -297,10 +302,7 @@
             const s1 = pivot - (range * 0.382);
             const s2 = pivot - (range * 0.618);
 
-            // അടിസ്ഥാന മൊമെന്റം സ്കോർ
             let score = 50 + (stock.changePct * 5);
-            
-            // മുന്നിൽ നിൽക്കുന്ന സെക്ടറുകളിലെ ഓഹരികൾക്ക് മുൻഗണന നൽകാൻ (Sector Weightage)
             const sectorBonus = (sectorAverages[stock.sector] || 0) * 8; 
             score += sectorBonus;
 
@@ -336,10 +338,8 @@
             });
         }
 
-        // ഏറ്റവും മികച്ച സ്കോർ ഉള്ളവയെ മുകളിൽ കൊണ്ടുവരാൻ
         results.sort((a, b) => b.score - a.score);
 
-        // Top 10 ട്രേഡുകൾ കാർഡുകളായി നൽകുന്നു
         const topCards = document.getElementById('top-cards');
         topCards.innerHTML = '';
         const displayCount = Math.min(10, results.length);
@@ -360,7 +360,6 @@
             `;
         }
 
-        // എല്ലാ ഓഹരികളും ടേബിളിൽ നൽകുന്നു
         const tbody = document.getElementById('table-body');
         tbody.innerHTML = '';
         results.forEach((item) => {
