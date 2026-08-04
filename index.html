@@ -210,7 +210,7 @@
     }
 
     function cleanNum(val) {
-        if (!val || val === "#N/A" || val.includes("N/A")) return 0;
+        if (!val || val === "#N/A" || val.includes("N/A") || val.trim() === "") return 0;
         const cleaned = val.toString().replace(/[₹,"]/g, '').trim();
         return parseFloat(cleaned) || 0;
     }
@@ -221,8 +221,9 @@
         for (let line of lines) {
             if (!line.trim()) continue;
             let cols = line.includes('\t') ? line.split('\t') : line.split(',');
-            // പുതിയ ഷീറ്റിൽ 10 കോളങ്ങൾ (A മുതൽ J വരെ) ഉണ്ട് എന്ന് ഉറപ്പാക്കാൻ
-            if (cols.length >= 9) { 
+            
+            // കുറഞ്ഞത് സിംബലും വിലയും (2 കോളങ്ങൾ എങ്കിലും) ഉണ്ടെങ്കിൽ മാത്രം എടുക്കുക
+            if (cols.length >= 2) { 
                 rows.push(cols);
             }
         }
@@ -234,26 +235,24 @@
         const sectorData = {};
 
         for (let cols of rows) {
-            const name = cols[0].replace(/["]/g, '').replace('NSE:', '').replace('BSE:', '').trim();
+            const name = cols[0] ? cols[0].replace(/["]/g, '').replace('NSE:', '').replace('BSE:', '').trim() : '';
             if (name.toLowerCase().includes('symbol') || name === '') continue;
 
-            // പുതിയ കോളങ്ങൾക്കനുസരിച്ചുള്ള ഇൻഡക്സുകൾ
-            const ltp = cleanNum(cols[1]); // B കോളം
-            const high52 = cleanNum(cols[2]); // C കോളം
-            const low52 = cleanNum(cols[3]); // D കോളം
-            const marketCap = cleanNum(cols[4]); // E കോളം
-            const peRatio = cleanNum(cols[5]); // F കോളം
-            const dayOpen = cleanNum(cols[6]); // G കോളം
-            const dayHigh = cleanNum(cols[7]); // H കോളം
-            const dayLow = cleanNum(cols[8]); // I കോളം
-            const preClose = cleanNum(cols[9]); // J കോളം
+            const ltp = cols.length > 1 ? cleanNum(cols[1]) : 0;
+            const dayOpen = cols.length > 6 ? cleanNum(cols[6]) : 0;
+            const dayHigh = cols.length > 7 ? cleanNum(cols[7]) : 0;
+            const dayLow = cols.length > 8 ? cleanNum(cols[8]) : 0;
+            const preClose = cols.length > 9 ? cleanNum(cols[9]) : 0;
             
-            // N/A ഡാറ്റ വന്നിട്ടുണ്ടെങ്കിൽ ഒഴിവാക്കാൻ
-            if (ltp === 0 || dayHigh === 0 || dayLow === 0 || preClose === 0) continue;
+            // വില (LTP) ഇല്ലാത്ത ഓഹരികളെ മാത്രം ഒഴിവാക്കുന്നു
+            if (ltp === 0) continue;
 
-            // Change % തനിയെ കണ്ടെത്തുന്നു
-            const changePct = ((ltp - preClose) / preClose) * 100;
+            // Day High/Low കിട്ടിയില്ലെങ്കിൽ ഫെയിൽ ആകാതിരിക്കാൻ LTP തന്നെ ഉപയോഗിക്കുന്നു
+            const dHigh = dayHigh || ltp;
+            const dLow = dayLow || ltp;
+            const pClose = preClose || ltp;
 
+            const changePct = pClose !== 0 ? ((ltp - pClose) / pClose) * 100 : 0;
             const sector = niftySectors[name] || "Others";
 
             if (!sectorData[sector]) {
@@ -262,11 +261,11 @@
             sectorData[sector].totalChange += changePct;
             sectorData[sector].count += 1;
 
-            rawStocks.push({ name, sector, ltp, changePct, dayOpen, dayHigh, dayLow });
+            rawStocks.push({ name, sector, ltp, changePct, dayOpen, dayHigh: dHigh, dayLow: dLow });
         }
 
         if (rawStocks.length === 0) {
-            alert("ഡാറ്റ വായിക്കാൻ സാധിച്ചില്ല. ഗൂഗിൾ ഫിനാൻസ് ഡാറ്റ ശരിയായിട്ടുണ്ടോ എന്ന് പരിശോധിക്കുക.");
+            alert("ഡാറ്റ വായിക്കാൻ സാധിച്ചില്ല. ഷീറ്റിൽ ഗൂഗിൾ ഫിനാൻസ് നൽകുന്ന 'LTP' ലഭ്യമാണെന്ന് ഉറപ്പുവരുത്തുക.");
             return;
         }
 
@@ -389,6 +388,7 @@
 
         const loadingDiv = document.getElementById('loading');
         loadingDiv.style.display = 'block';
+        document.getElementById('result-area').style.display = 'none';
         
         try {
             let response = await fetch(rawUrl).catch(() => null);
@@ -410,7 +410,7 @@
         } catch (err) {
             console.error(err);
             loadingDiv.style.display = 'none';
-            alert("ഡാറ്റ തനിയെ ലോഡ് ചെയ്യാൻ സാധിച്ചില്ല. 'Direct Copy-Paste' ടാബ് ഉപയോഗിക്കുക.");
+            alert("ഡാറ്റ തനിയെ ലോഡ് ചെയ്യാൻ സാധിച്ചില്ല. ബ്രൗസറിന്റെയോ ലിങ്കിന്റെയോ പ്രശ്നമാകാം. 'Direct Copy-Paste' ടാബ് ഉപയോഗിക്കുക.");
         }
     }
 
